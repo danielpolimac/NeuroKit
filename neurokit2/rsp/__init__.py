@@ -14,6 +14,7 @@ from .rsp_peaks import rsp_peaks
 from .rsp_phase import rsp_phase
 from .rsp_plot import rsp_plot
 from .rsp_process import rsp_process
+from .rsp_quality import rsp_quality
 from .rsp_rate import rsp_rate
 from .rsp_rav import rsp_rav
 from .rsp_rrv import rsp_rrv
@@ -35,6 +36,7 @@ __all__ = [
     "rsp_phase",
     "rsp_plot",
     "rsp_process",
+    "rsp_quality",
     "rsp_rav",
     "rsp_rrv",
     "rsp_rvt",
