@@ -21,7 +21,8 @@ def rsp_clean(rsp_signal, sampling_rate=1000, method="khodadad2018", **kwargs):
       detrending).
     * **hampel**: Applies a median-based Hampel filter by replacing values which are 3 (can be
       changed via ``threshold``) :func:`.mad` away from the rolling median.
-    * **charlton2021**: Second order 1 Hz lowpass Butterworth filter.
+    * **charlton2021**: Second order 1 Hz lowpass Butterworth filter. Note that is doesn't include
+      the Tukey window step proposed in Charlton et al.
 
     Parameters
     ----------

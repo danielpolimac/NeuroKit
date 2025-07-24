@@ -25,8 +25,8 @@ def rsp_findpeaks(
     sampling_rate : int
         The sampling frequency of :func:`.rsp_cleaned` (in Hz, i.e., samples/second).
     method : str
-        The processing pipeline to apply. Can be one of ``"khodadad2018"`` (default), ``"scipy"`` or
-        ``"biosppy"``.
+        The processing pipeline to apply. Can be one of ``"khodadad2018"`` (default), ``"scipy"``,
+        ``"biosppy"``, or ``"schafer2008"``.
     amplitude_min : float
         Only applies if method is ``"khodadad2018"``. Extrema that have a vertical distance smaller
         than(outlier_threshold * average vertical distance) to any direct neighbour are removed as
@@ -90,6 +90,8 @@ def rsp_findpeaks(
             peak_distance=peak_distance,
             peak_prominence=peak_prominence,
         )
+    elif method in ["schafer", "schafer2008"]:
+        info = _rsp_findpeaks_schafer(cleaned, sampling_rate=sampling_rate)
     else:
         raise ValueError(
             "NeuroKit error: rsp_findpeaks(): 'method' should be one of 'khodadad2018', 'scipy' or 'biosppy'."
@@ -117,6 +119,49 @@ def _rsp_findpeaks_biosppy(rsp_cleaned, sampling_rate):
     troughs = np.delete(troughs, outlier_idcs)
 
     info = {"RSP_Peaks": peaks, "RSP_Troughs": troughs}
+    return info
+
+
+def _rsp_findpeaks_schafer(rsp_cleaned, sampling_rate):
+    """Respiratory peak and trough detection based on Schafer et al. (2008)
+    https://doi.org/10.1007/s10439-007-9428-1
+    Based on Charlton's MATLAB implementation at:
+    https://github.com/peterhcharlton/impSQI/ 
+    """
+
+    # Invert and detrend signal
+    signal = -1 * scipy.signal.detrend(rsp_cleaned)
+
+    # First differences
+    diffs = np.diff(signal)
+
+    # Identify peaks
+    left = diffs[:-1] > 0
+    right = diffs[1:] < 0
+    peaks = np.where(left & right)[0] + 1  # +1 to align with original indexing
+
+    # Identify troughs
+    left = diffs[:-1] < 0
+    right = diffs[1:] > 0
+    troughs = np.where(left & right)[0] + 1
+
+    # Keep only relevant peaks: above threshold
+    if len(peaks) > 0:
+        q3 = np.percentile(signal[peaks], 75)
+        thresh = 0.2 * q3
+        rel_peaks = peaks[signal[peaks] > thresh]
+    else:
+        rel_peaks = np.array([], dtype=int)
+
+    # Keep only relevant troughs: below threshold
+    if len(troughs) > 0:
+        q3t = np.percentile(signal[troughs], 25)
+        thresh = 0.2 * q3t
+        rel_troughs = troughs[signal[troughs] < thresh]
+    else:
+        rel_troughs = np.array([], dtype=int)
+
+    info = {"RSP_Peaks": rel_peaks, "RSP_Troughs": rel_troughs}
     return info
 
 

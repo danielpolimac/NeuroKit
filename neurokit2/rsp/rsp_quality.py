@@ -14,7 +14,9 @@ def rsp_quality(rsp_cleaned, peaks=None, sampling_rate=1000, method="templatemat
       individual breath and an average (template) breath shape. This index is therefore
       relative: 1 corresponds to breaths that are closest to the average breath shape (i.e.
       correlate exactly with it) and 0 corresponds to there being no correlation with the average
-      breath shape. Note that Charlton et al. use a particular breath detection algorithm.
+      breath shape. Note that for pre-processing, Charlton et al. cleaned the signal with a low-pass filter
+      below 1 Hz (the "charlton2021" method in rsp_clean), and used the "schafer2008" breath detection
+      algorithm (the "schafer2008" method in rsp_peaks).
 
     Parameters
     ----------
@@ -66,7 +68,7 @@ def rsp_quality(rsp_cleaned, peaks=None, sampling_rate=1000, method="templatemat
 
     # Detect RSP peaks (if not done already)
     if peaks is None:
-        _, peaks = rsp_peaks(rsp_cleaned, sampling_rate=sampling_rate)
+        _, peaks = rsp_peaks(rsp_cleaned, sampling_rate=sampling_rate, method="schafer2008")
         peaks = peaks["RSP_Peaks"]
 
     # Sanitise method name
