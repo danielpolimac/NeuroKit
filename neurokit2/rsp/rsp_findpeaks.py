@@ -133,11 +133,8 @@ def _rsp_findpeaks_bettermann(rsp_cleaned):
     https://github.com/peterhcharlton/impSQI/
     """
 
-    # Invert and detrend signal
-    signal = -1 * scipy.signal.detrend(rsp_cleaned)
-
     # First differences
-    diffs = np.diff(signal)
+    diffs = np.diff(rsp_cleaned)
 
     # Identify peaks
     left = diffs[:-1] > 0
@@ -151,17 +148,17 @@ def _rsp_findpeaks_bettermann(rsp_cleaned):
 
     # Keep only relevant peaks: above threshold
     if len(peaks) > 0:
-        q3 = np.percentile(signal[peaks], 75)
+        q3 = np.percentile(rsp_cleaned[peaks], 75)
         thresh = 0.2 * q3
-        rel_peaks = peaks[signal[peaks] > thresh]
+        rel_peaks = peaks[rsp_cleaned[peaks] > thresh]
     else:
         rel_peaks = np.array([], dtype=int)
 
     # Keep only relevant troughs: below threshold
     if len(troughs) > 0:
-        q3t = np.percentile(signal[troughs], 25)
+        q3t = np.percentile(rsp_cleaned[troughs], 25)
         thresh = 0.2 * q3t
-        rel_troughs = troughs[signal[troughs] < thresh]
+        rel_troughs = troughs[rsp_cleaned[troughs] < thresh]
     else:
         rel_troughs = np.array([], dtype=int)
 

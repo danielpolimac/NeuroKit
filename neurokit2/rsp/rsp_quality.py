@@ -1,5 +1,6 @@
 # - * - coding: utf-8 - * -
 
+import scipy.signal
 from .rsp_peaks import rsp_peaks
 from ..signal.signal_templatequality import signal_templatequality
 
@@ -66,11 +67,6 @@ def rsp_quality(rsp_cleaned, peaks=None, sampling_rate=1000, method="templatemat
 
     method = method.lower()  # remove capitalised letters
 
-    # Detect RSP peaks (if not done already)
-    if peaks is None:
-        _, peaks = rsp_peaks(rsp_cleaned, sampling_rate=sampling_rate, method="bettermann1996")
-        peaks = peaks["RSP_Peaks"]
-
     # Sanitise method name
     if method.lower() in ["templatematch", "charlton2021", "charlton"]:
         method = "templatematch"
@@ -79,7 +75,18 @@ def rsp_quality(rsp_cleaned, peaks=None, sampling_rate=1000, method="templatemat
             f"Method '{method}' not recognised. Please use 'templatematch'."
         )
 
-    # Run
+    # Do method-specific pre-processing
+    if method in ["templatematch"]:
+        
+        # Pre-process: Invert and detrend signal
+        rsp_cleaned = -1 * scipy.signal.detrend(rsp_cleaned)
+
+        # Detect RSP peaks (if not done already)
+        if peaks is None:
+            _, peaks = rsp_peaks(rsp_cleaned, sampling_rate=sampling_rate, method="bettermann1996")
+            peaks = peaks["RSP_Peaks"]
+
+    # Run signal quality assessment
     quality = signal_templatequality(
         rsp_cleaned,
         beat_inds=peaks,
