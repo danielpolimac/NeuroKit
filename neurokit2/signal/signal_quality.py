@@ -448,9 +448,17 @@ def _quality_skewness(signal, sampling_rate=1000, window_sec=3, overlap_sec=2):
             skew = np.mean(((window - mu_x) / omega) ** 3)
         skewness_values.append(skew)
 
-    # Pad output to match input length
-    output = np.zeros(n_samples)
-    for i, start in enumerate(range(0, n_samples - window_size + 1, step_size)):
-        output[start:start + window_size] = skewness_values[i]
+    # Interpolate skewness values to all signal samples
+    window_centers = np.arange(0, n_samples - window_size + 1, step_size) + window_size // 2
+    output = signal_interpolate(
+        x_values=window_centers,
+        y_values=skewness_values,
+        x_new=np.arange(n_samples),
+        method="previous"
+    )
+
+    # Fill any NaNs at the start with the first skewness value
+    if np.isnan(output[0]):
+        output[:window_centers[0]] = skewness_values[0]
 
     return output
