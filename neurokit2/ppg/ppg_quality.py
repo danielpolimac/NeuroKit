@@ -2,7 +2,6 @@
 
 from .ppg_peaks import ppg_peaks
 from ..signal.signal_quality import signal_quality
-import numpy as np
 
 
 def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatematch", window_sec=3, overlap_sec=2, no_bins=16):
