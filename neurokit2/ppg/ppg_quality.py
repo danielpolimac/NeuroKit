@@ -1,10 +1,12 @@
 # - * - coding: utf-8 - * -
 
 from .ppg_peaks import ppg_peaks
+from .ppg_clean import ppg_clean
 from ..signal.signal_quality import signal_quality
+import numpy as np
 
 
-def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatematch", window_sec=3, overlap_sec=2, no_bins=16):
+def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatematch", window_sec=3, overlap_sec=2, no_bins=16, ppg_raw=None):
     """**PPG Signal Quality Assessment**
 
     Assess the quality of the PPG Signal using various methods:
@@ -44,6 +46,10 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
     * The ``"entropy"`` method (based on Selvaraj et al., 2011, and inspired by Elgendi, 2016) computes the entropy of the 
       signal in moving windows. The entropy is a measure of the randomness in the signal's amplitude values.
 
+    * The ``"perfusion"`` method (based on Elgendi, 2016) computes the perfusion index of the PPG signal.
+      The perfusion index is the ratio of the amplitude of the pulsatile (AC) component of the PPG to its baseline (DC)
+      amplitude.
+
     Parameters
     ----------
     ppg_cleaned : Union[list, np.array, pd.Series]
@@ -64,6 +70,8 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
         and ``"kurtosis"``.
     no_bins : int, optional
         Number of bins for ``"entropy"`` calculation (default: 16).
+    raw_ppg : Union[list, np.array, pd.Series]
+        The raw PPG signal: used for the "perfusion" method.
 
     Returns
     -------
@@ -139,10 +147,12 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
         method = "kurtosis"
     elif method in ["entropy"]:
         method = "entropy"
+    elif method in ["perfusion"]:
+        method = "perfusion"
     else:
         raise ValueError(
             f"Method '{method}' not recognised. Please use 'templatematch', 'disimilarity', 'ici', 'skewness', 'kurtosis', "
-            "or 'entropy'."
+            "'entropy', or 'perfusion'."
         )
 
     # Detect PPG peaks (if not done already, and if required for the specified quality-assessment method)
@@ -198,5 +208,67 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
             overlap_sec=overlap_sec,
             no_bins=no_bins,
         )
+    elif method == "perfusion":
+        if ppg_raw is None:
+            raise ValueError("ppg_raw must be provided for the 'perfusion' method.")
+        quality = _ppg_quality_perfusion(
+            ppg_raw,
+            ppg_cleaned,
+            sampling_rate=sampling_rate,
+            window_sec=window_sec,
+            overlap_sec=overlap_sec,
+        )
 
     return quality
+
+
+def _ppg_quality_perfusion(ppg_raw, ppg_cleaned, sampling_rate=1000, window_sec=3, overlap_sec=2):
+    """
+    Compute perfusion index for PPG signal quality in moving windows.
+
+    Parameters
+    ----------
+    ppg_raw : array-like
+        Raw PPG signal.
+    ppg_cleaned : array-like
+        Filtered PPG signal (e.g., cleaned using the 'goda' method).
+    sampling_rate : int
+        Sampling frequency (Hz).
+    window_sec : float
+        Window length in seconds (default: 3).
+    overlap_sec : float
+        Overlap between windows in seconds (default: 2).
+
+    Returns
+    -------
+    perfusion : np.ndarray
+        Perfusion index values for each window, interpolated to signal length.
+    """
+    window_size = int(window_sec * sampling_rate)
+    step_size = int((window_sec - overlap_sec) * sampling_rate)
+    n_samples = len(ppg_raw)
+    perfusion_values = []
+
+    for start in range(0, n_samples - window_size + 1, step_size):
+        y = ppg_cleaned[start:start + window_size]
+        x = ppg_raw[start:start + window_size]
+        x_bar = np.mean(x)
+        if x_bar == 0:
+            perf = 0
+        else:
+            perf = ((np.max(y) - np.min(y)) / abs(x_bar)) * 100
+        perfusion_values.append(perf)
+
+    # Interpolate perfusion values to all signal samples
+    window_centers = np.arange(0, n_samples - window_size + 1, step_size) + window_size // 2
+    from ..signal.signal_interpolate import signal_interpolate
+    output = signal_interpolate(
+        x_values=window_centers,
+        y_values=perfusion_values,
+        x_new=np.arange(n_samples),
+        method="previous"
+    )
+    if np.isnan(output[0]):
+        output[:window_centers[0]] = perfusion_values[0]
+
+    return output
