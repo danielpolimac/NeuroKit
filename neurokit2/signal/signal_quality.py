@@ -39,8 +39,13 @@ def signal_quality(
 
     * The ``"skewness"`` method (based on Elgendi, 2016) computes the skewness of the signal in moving windows. 
       The skewness is a measure of the asymmetry of the probability distribution of the signal's amplitude values. 
-      For the PPG, higher quality signals are generally found to have higher skewness values. The window length and overlap 
-      can be adjusted using the ``window_sec`` and ``overlap_sec`` parameters.
+      For the PPG, higher quality signals were generally found to have higher skewness values (Elgendi, 2016). 
+      The window length and overlap can be adjusted using the ``window_sec`` and ``overlap_sec`` parameters.
+
+    * The ``"kurtosis"`` method (based on Elgendi, 2016) computes the kurtosis of the signal in moving windows.
+      The kurtosis is a measure of the "tailedness" of the probability distribution of the signal's amplitude values.
+      For the PPG, higher quality signals are generally found to have higher kurtosis values (Elgendi, 2016).
+      The window length and overlap can be adjusted using the ``window_sec`` and ``overlap_sec`` parameters.
 
     Parameters
     ----------
@@ -54,8 +59,8 @@ def signal_quality(
     signal_type : str
         The signal type (e.g. 'ppg', 'ecg', or 'rsp').
     method : str
-        The processing pipeline to apply. Can be one of ``"disimilarity"``, ``"templatematch"``, ``"ici"``, or 
-        ``"skewness"``. The default is ``"templatematch"``.
+        The processing pipeline to apply. Can be one of ``"disimilarity"``, ``"templatematch"``, ``"ici"``, 
+        ``"skewness"``, or ``"kurtosis"``. The default is ``"templatematch"``.
     primary_detector : str
         The name of the primary cycle (i.e. beat or breath) detector (e.g. the defaults are ``"unsw"`` for the ECG, and
         ``"charlton"`` for the PPG).
@@ -66,9 +71,10 @@ def signal_quality(
         The tolerance window size (in milliseconds) for use with the "ici" method when assessing agreement between
         primary and secondary cycle detectors.
     window_sec : float, optional
-        Window length in seconds for windowed metrics (default: 3). Used for the ``"skewness"`` method.
+        Window length in seconds for windowed metrics (default: 3). Used for the ``"skewness"`` and ``"kurtosis"`` methods.
     overlap_sec : float, optional
-        Overlap between windows in seconds for windowed metrics (default: 2). Used for the ``"skewness"`` method.
+        Overlap between windows in seconds for windowed metrics (default: 2). Used for the ``"skewness"`` and ``"kurtosis"``
+        methods.
     **kwargs
         Additional keyword arguments, usually specific for each method.
 
@@ -179,7 +185,15 @@ def signal_quality(
             sampling_rate=sampling_rate,tolerance_window_ms=tolerance_window_ms
         )
     elif method == "skewness":
-        quality = _quality_skewness(signal, sampling_rate=sampling_rate, window_sec=window_sec, overlap_sec=overlap_sec)
+        quality = _quality_moment(
+            signal, sampling_rate=sampling_rate, window_sec=window_sec, overlap_sec=overlap_sec, moment=3)
+    elif method == "kurtosis":
+        quality = _quality_moment(
+            signal, sampling_rate=sampling_rate, window_sec=window_sec, overlap_sec=overlap_sec, moment=4)
+    else:
+        raise ValueError(
+            f"Method '{method}' not recognised. Please use 'templatematch', 'disimilarity', 'ici', 'skewness', or 'kurtosis."
+        )
 
     return quality
 
@@ -411,11 +425,11 @@ def _signal_cycles(signal, signal_type, cycle_detector, sampling_rate):
 
 
 # =============================================================================
-# Quality assessment using skewness method
+# Quality assessment using moment methods (skewness, kurtosis)
 # =============================================================================
-def _quality_skewness(signal, sampling_rate=1000, window_sec=3, overlap_sec=2):
+def _quality_moment(signal, sampling_rate=1000, window_sec=3, overlap_sec=2, moment=3):
     """
-    Compute the skewness metric for signal quality in moving windows.
+    Compute a moment-based metric (e.g., skewness or kurtosis) for signal quality in moving windows.
 
     Parameters
     ----------
@@ -427,38 +441,40 @@ def _quality_skewness(signal, sampling_rate=1000, window_sec=3, overlap_sec=2):
         Window length in seconds (default: 3).
     overlap_sec : float
         Overlap between windows in seconds (default: 2).
+    moment : int
+        The moment to compute (3 for skewness, 4 for kurtosis).
 
     Returns
     -------
-    skewness : np.ndarray
-        Skewness values for each window.
+    metric : np.ndarray
+        Moment values for each window.
     """
     window_size = int(window_sec * sampling_rate)
     step_size = int((window_sec - overlap_sec) * sampling_rate)
     n_samples = len(signal)
-    skewness_values = []
+    moment_values = []
 
     for start in range(0, n_samples - window_size + 1, step_size):
         window = signal[start:start + window_size]
         mu_x = np.mean(window)
         omega = np.std(window)
         if omega == 0:
-            skew = 0
+            val = 0
         else:
-            skew = np.mean(((window - mu_x) / omega) ** 3)
-        skewness_values.append(skew)
+            val = np.mean(((window - mu_x) / omega) ** moment)
+        moment_values.append(val)
 
-    # Interpolate skewness values to all signal samples
+    # Interpolate moment values to all signal samples
     window_centers = np.arange(0, n_samples - window_size + 1, step_size) + window_size // 2
     output = signal_interpolate(
         x_values=window_centers,
-        y_values=skewness_values,
+        y_values=moment_values,
         x_new=np.arange(n_samples),
         method="previous"
     )
 
-    # Fill any NaNs at the start with the first skewness value
+    # Fill any NaNs at the start with the first moment value
     if np.isnan(output[0]):
-        output[:window_centers[0]] = skewness_values[0]
+        output[:window_centers[0]] = moment_values[0]
 
     return output

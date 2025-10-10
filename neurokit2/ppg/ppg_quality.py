@@ -38,6 +38,10 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
       measure of the asymmetry of the probability distribution of the signal's amplitude values. In Elgendi (2016),
       higher quality signals were generally found to have higher skewness values.
 
+    * The ``"kurtosis"`` method (based on Elgendi, 2016) computes the kurtosis of the PPG signal. The kurtosis is a 
+      measure of the "tailedness" of the probability distribution of the signal's amplitude values. In Elgendi (2016),
+      higher quality signals were generally found to have higher kurtosis values.
+
     Parameters
     ----------
     ppg_cleaned : Union[list, np.array, pd.Series]
@@ -49,11 +53,13 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
         The sampling frequency of the signal (in Hz, i.e., samples/second).
     method : str
         The method for computing PPG signal quality, can be ``"templatematch"`` (default), ``"disimilarity"``,
-        ``"ho2025"``, or ``"skewness"``.
+        ``"ho2025"``, ``"skewness"``, or ``"kurtosis"``.
     window_sec : float, optional
-        Window length in seconds for windowed metrics (default: 3, based on Elgendi 2016): ``"skewness"``.
+        Window length in seconds for windowed metrics (default: 3, based on Elgendi 2016): used for ``"skewness"`` 
+        and ``"kurtosis"``.
     overlap_sec : float, optional
-        Overlap between windows in seconds for windowed metrics (default: 2): ``"skewness"``.
+        Overlap between windows in seconds for windowed metrics (default: 2): ``"skewness"``: used for ``"skewness"`` 
+        and ``"kurtosis"``.
 
     Returns
     -------
@@ -61,7 +67,7 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
         Vector containing the quality index ranging from 0 to 1 for ``"templatematch"`` method,
         or an unbounded value (where 0 indicates high quality) for ``"disimilarity"`` method,
         or zeros and ones (where 1 indicates high quality) for ``"ho2025"`` method, or an unbounded value
-        for ``"skewness"`` method.
+        for ``"skewness"`` or ``"kurtosis"`` methods.
 
     See Also
     --------
@@ -123,9 +129,11 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
         method = "ici"
     elif method in ["skewness"]:
         method = "skewness"
+    elif method in ["kurtosis"]:
+        method = "kurtosis"
     else:
         raise ValueError(
-            f"Method '{method}' not recognised. Please use 'templatematch', 'disimilarity', 'ho2025', or 'skewness'."
+            f"Method '{method}' not recognised. Please use 'templatematch', 'disimilarity', 'ici', 'skewness', or 'kurtosis'."
         )
 
     # Detect PPG peaks (if not done already, and if required for the specified quality-assessment method)
@@ -159,6 +167,15 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
             sampling_rate=sampling_rate,
             signal_type="ppg",
             method="skewness",
+            window_sec=window_sec,
+            overlap_sec=overlap_sec,
+        )
+    elif method == "kurtosis":
+        quality = signal_quality(
+            ppg_cleaned,
+            sampling_rate=sampling_rate,
+            signal_type="ppg",
+            method="kurtosis",
             window_sec=window_sec,
             overlap_sec=overlap_sec,
         )
