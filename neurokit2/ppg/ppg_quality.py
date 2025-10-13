@@ -3,10 +3,21 @@
 from .ppg_peaks import ppg_peaks
 from .ppg_clean import ppg_clean
 from ..signal.signal_quality import signal_quality
+from ..signal.signal_interpolate import signal_interpolate
+from ..signal.signal_power import signal_power
 import numpy as np
 
 
-def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatematch", window_sec=3, overlap_sec=2, no_bins=16, ppg_raw=None):
+def ppg_quality(
+    ppg_cleaned,
+    peaks=None,
+    sampling_rate=1000,
+    method="templatematch",
+    window_sec=None,
+    overlap_sec=None,
+    no_bins=16,
+    ppg_raw=None,
+):
     """**PPG Signal Quality Assessment**
 
     Assess the quality of the PPG Signal using various methods:
@@ -48,7 +59,13 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
 
     * The ``"perfusion"`` method (based on Elgendi, 2016) computes the perfusion index of the PPG signal.
       The perfusion index is the ratio of the amplitude of the pulsatile (AC) component of the PPG to its baseline (DC)
-      amplitude.
+      amplitude, expressed as a percentage. It is calculated over moving windows (default: 3 seconds window, 2 seconds 
+      overlap). Requires raw PPG signal.
+
+    * The ``"relative_power"`` method (based on Elgendi, 2016) computes the relative power of the PPG signal.
+      The relative power is the ratio of the power in the 1-2.25 Hz band to the power in the 0-8 Hz band, giving a value 
+      between 0 and 1. It is calculated over moving windows (default: 60 seconds window, 30 seconds overlap). Requires 
+      raw PPG signal.
 
     Parameters
     ----------
@@ -61,16 +78,16 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
         The sampling frequency of the signal (in Hz, i.e., samples/second).
     method : str
         The method for computing PPG signal quality, can be ``"templatematch"`` (default), ``"disimilarity"``,
-        ``"ho2025"``, ``"skewness"``, or ``"kurtosis"``.
+        ``"ho2025"``, ``"skewness"``, ``"kurtosis"``, ``"entropy"``, ``"perfusion"``, or ``"relative_power"``.
     window_sec : float, optional
-        Window length in seconds for windowed metrics (default: 3, based on Elgendi 2016): used for ``"skewness"`` 
-        and ``"kurtosis"``.
+        Window length in seconds for windowed metrics. Default is 3 seconds for ``"skewness"``, ``"kurtosis"``, 
+        ``"perfusion"``, and 60 seconds for ``"relative_power"``.
     overlap_sec : float, optional
-        Overlap between windows in seconds for windowed metrics (default: 2): ``"skewness"``: used for ``"skewness"`` 
-        and ``"kurtosis"``.
+        Overlap between windows in seconds for windowed metrics. Default is 2 seconds for ``"skewness"``, ``"kurtosis"``, 
+        ``"perfusion"``, and 30 seconds for ``"relative_power"``.
     no_bins : int, optional
         Number of bins for ``"entropy"`` calculation (default: 16).
-    raw_ppg : Union[list, np.array, pd.Series]
+    ppg_raw : Union[list, np.array, pd.Series], optional
         The raw PPG signal: used for the "perfusion" method.
 
     Returns
@@ -79,7 +96,7 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
         Vector containing the quality index ranging from 0 to 1 for ``"templatematch"`` method,
         or an unbounded value (where 0 indicates high quality) for ``"disimilarity"`` method,
         or zeros and ones (where 1 indicates high quality) for ``"ho2025"`` method, or an unbounded value
-        for ``"skewness"`` or ``"kurtosis"`` methods.
+        for ``"skewness"``, ``"kurtosis"``, ``"entropy"``, ``"perfusion"``, or ``"relative_power"`` methods.
 
     See Also
     --------
@@ -149,11 +166,29 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
         method = "entropy"
     elif method in ["perfusion"]:
         method = "perfusion"
+    elif method in ["relative_power"]:
+        method = "relative_power"
     else:
         raise ValueError(
             f"Method '{method}' not recognised. Please use 'templatematch', 'disimilarity', 'ici', 'skewness', 'kurtosis', "
-            "'entropy', or 'perfusion'."
+            "'entropy', 'perfusion' or 'relative_power'."
         )
+
+    # check that raw PPG signal has been provided if required
+    if (method in ["perfusion", "relative_power"]) and (ppg_raw is None):
+        raise ValueError(f"ppg_raw must be provided for the {method} method.")
+    
+    # Set default window values based on method if not provided
+    if method == "relative_power":
+        if window_sec is None:
+            window_sec = 60
+        if overlap_sec is None:
+            overlap_sec = 30
+    elif method in ["skewness", "kurtosis", "perfusion"]:
+        if window_sec is None:
+            window_sec = 3
+        if overlap_sec is None:
+            overlap_sec = 2
 
     # Detect PPG peaks (if not done already, and if required for the specified quality-assessment method)
     if peaks is None:
@@ -209,11 +244,19 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
             no_bins=no_bins,
         )
     elif method == "perfusion":
-        if ppg_raw is None:
-            raise ValueError("ppg_raw must be provided for the 'perfusion' method.")
-        quality = _ppg_quality_perfusion(
-            ppg_raw,
+        quality = _windowed_metric(
             ppg_cleaned,
+            ppg_raw,
+            _perfusion_func,
+            sampling_rate=sampling_rate,
+            window_sec=window_sec,
+            overlap_sec=overlap_sec,
+        )
+    elif method == "relative_power":
+        quality = _windowed_metric(
+            ppg_cleaned,
+            ppg_raw,
+            _rel_power_func,
             sampling_rate=sampling_rate,
             window_sec=window_sec,
             overlap_sec=overlap_sec,
@@ -222,53 +265,109 @@ def ppg_quality(ppg_cleaned, peaks=None, sampling_rate=1000, method="templatemat
     return quality
 
 
-def _ppg_quality_perfusion(ppg_raw, ppg_cleaned, sampling_rate=1000, window_sec=3, overlap_sec=2):
+# Common window calculation for perfusion and relative_power
+def _windowed_metric(clean_signal, raw_signal, func, sampling_rate, window_sec, overlap_sec, **kwargs):
+
+    # check that clean_signal and raw_signal have the same length
+    if len(clean_signal) != len(raw_signal):
+        raise ValueError("Clean and raw signals must have the same length.")
+
+    # setup windows
+    window_size = int(window_sec * sampling_rate)
+    step_size = int((window_sec - overlap_sec) * sampling_rate)
+    n_samples = len(clean_signal)
+    if n_samples < window_size:
+        raise ValueError(f"Signal length ({n_samples} samples) is shorter than window size ({window_size} samples).")
+    
+    # calculate metric for each window
+    metric_values = []
+    for start in range(0, n_samples - window_size + 1, step_size):
+        if func == _rel_power_func:
+            metric_values.append(func(raw_signal[start:start + window_size], sampling_rate=sampling_rate))
+        else:
+            metric_values.append(func(raw_signal[start:start + window_size], clean_signal[start:start + window_size]))
+
+    # interpolate window to provide a continuous output (same length as input signal)
+    window_centers = np.arange(0, n_samples - window_size + 1, step_size) + window_size // 2
+    output = signal_interpolate(
+        x_values=window_centers,
+        y_values=metric_values,
+        x_new=np.arange(n_samples),
+        method="previous"
+    )
+    if np.isnan(output[0]):
+        output[:window_centers[0]] = metric_values[0]
+    
+    return output
+
+
+def _perfusion_func(raw_ppg, cleaned_ppg):
     """
     Compute perfusion index for PPG signal quality in moving windows.
 
     Parameters
     ----------
-    ppg_raw : array-like
-        Raw PPG signal.
-    ppg_cleaned : array-like
-        Filtered PPG signal (e.g., cleaned using the 'goda' method).
-    sampling_rate : int
-        Sampling frequency (Hz).
-    window_sec : float
-        Window length in seconds (default: 3).
-    overlap_sec : float
-        Overlap between windows in seconds (default: 2).
+    raw_ppg : array-like
+        Raw PPG signal
+    cleaned_ppg : array-like
+        Cleaned PPG signal
 
     Returns
     -------
     perfusion : np.ndarray
         Perfusion index values for each window, interpolated to signal length.
     """
-    window_size = int(window_sec * sampling_rate)
-    step_size = int((window_sec - overlap_sec) * sampling_rate)
-    n_samples = len(ppg_raw)
-    perfusion_values = []
 
-    for start in range(0, n_samples - window_size + 1, step_size):
-        y = ppg_cleaned[start:start + window_size]
-        x = ppg_raw[start:start + window_size]
-        x_bar = np.mean(x)
-        if x_bar == 0:
-            perf = 0
-        else:
-            perf = ((np.max(y) - np.min(y)) / abs(x_bar)) * 100
-        perfusion_values.append(perf)
+    if raw_ppg is None:
+        raise ValueError("raw_ppg must be provided for perfusion calculation.")
+    
+    # calculate baseline
+    x_bar = np.mean(raw_ppg)
+    
+    # avoid dividing by zero
+    if x_bar == 0:
+        return 0
+    
+    # calculate perfusion
+    perfusion = ((np.max(cleaned_ppg) - np.min(cleaned_ppg)) / abs(x_bar)) * 100
 
-    # Interpolate perfusion values to all signal samples
-    window_centers = np.arange(0, n_samples - window_size + 1, step_size) + window_size // 2
-    from ..signal.signal_interpolate import signal_interpolate
-    output = signal_interpolate(
-        x_values=window_centers,
-        y_values=perfusion_values,
-        x_new=np.arange(n_samples),
-        method="previous"
+    return perfusion
+
+
+# Define relative power function for a window
+def _rel_power_func(raw_ppg, sampling_rate):
+    """
+    Compute relative power for PPG signal quality.
+
+    Parameters
+    ----------
+    raw_ppg : array-like
+        Raw PPG signal.
+    sampling_rate : int
+        Sampling frequency (Hz).
+
+    Returns
+    -------
+    relative_power : float
+        Relative power: power in 1-2.25 Hz band divided by power in 0-8 Hz band.
+    """
+
+    # Compute power in both bands
+    power = signal_power(
+        raw_ppg,
+        frequency_band=[(1, 2.25), (0, 8)],
+        sampling_rate=sampling_rate,
+        continuous=False,
+        normalize=False,
     )
-    if np.isnan(output[0]):
-        output[:window_centers[0]] = perfusion_values[0]
+    power_1_2_25 = power.loc[0, "Hz_1_2.25"]
+    power_0_8 = power.loc[0, "Hz_0_8"]
 
-    return output
+    # Avoid division by zero
+    if power_0_8 == 0:
+        return 0.0
+    
+    # calculate relative power
+    rel_power = power_1_2_25 / power_0_8
+    
+    return rel_power
