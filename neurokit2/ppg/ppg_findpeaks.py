@@ -486,6 +486,10 @@ def _ppg_findpeaks_charlton(
     peaks = sorted(set(peaks))
     onsets = sorted(set(onsets))
 
+    # convert to numpy arrays
+    peaks = np.asarray(peaks).astype(int)
+    onsets = np.asarray(onsets).astype(int)
+
     # Plot results (optional)
     if show:
         _, ax0 = plt.subplots(nrows=1, ncols=1, sharex=True)
