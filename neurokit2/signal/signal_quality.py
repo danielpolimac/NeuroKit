@@ -171,7 +171,8 @@ def signal_quality(
         )
     else:
         raise ValueError(
-            f"The `{method}` method does not exist in signal_quality. Please choose one of: `templatematch`, `dissimilarity` or `ici`"
+            f"The `{method}` method does not exist in signal_quality.\
+                    Please choose one of: `templatematch`, `dissimilarity` or `ici`"
         )
 
     return quality
