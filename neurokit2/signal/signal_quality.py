@@ -330,14 +330,23 @@ def _quality_ici(signal, signal_type, primary_detector, secondary_detector, samp
     # Build quality array
     quality = np.zeros(len(signal), dtype=int)
     for i in range(len(cycles_primary) - 1):
+        # identify start and end of current ICI
         start = cycles_primary[i]
         end = cycles_primary[i + 1]
 
+        # check if secondary detector has detected cycles within tolerance at both the start and end of the ICI
         match_start = any(abs(start - s) <= tolerance_samps for s in cycles_secondary)
         match_end = any(abs(end - s) <= tolerance_samps for s in cycles_secondary)
 
+        # if they have both detected cycles within the tolerance,
         if match_start and match_end:
+            # then assign quality = 1 (high quality) to the period within the ICI
             quality[start:end] = 1
+            # and if this is the first or last ICI, then extend the quality assignment to the start or end of the signal
+            if i == 0:
+                quality[0:start] = 1
+            if i == len(cycles_primary) - 2:
+                quality[end:] = 1
 
     return quality
 
