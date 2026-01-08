@@ -119,10 +119,13 @@ Repository = "https://github.com/neuropsychology/NeuroKit"
 Documentation = "https://neuropsychology.github.io/NeuroKit/"
 
 [tool.hatch.version]
-path = "neurokit2/__init__.py"
+source = "vcs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["neurokit2"]
+
+[tool.hatch.build.hooks.vcs]
+version-file = "neurokit2/_version.py"
 
 [tool.hatch.build.targets.sdist]
 exclude = [
@@ -136,6 +139,8 @@ exclude = [
   "/data",
   "/flake.nix",
   "/flake.lock",
+  "tests/",
+  "docs/"
 ]
 
 [tool.uv]
