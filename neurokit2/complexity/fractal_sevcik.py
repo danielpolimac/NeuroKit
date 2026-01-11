@@ -56,7 +56,9 @@ def fractal_sevcik(signal):
     """
     # Sanity checks
     if isinstance(signal, (np.ndarray, pd.DataFrame)) and signal.ndim > 1:
-        raise ValueError("Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet.")
+        raise ValueError(
+            "Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet."
+        )
 
     # 1. Normalize the signal (new range to [0, 1])
     y_ = rescale(signal, to=[0, 1])

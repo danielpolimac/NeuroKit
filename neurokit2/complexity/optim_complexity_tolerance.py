@@ -10,7 +10,9 @@ from .utils_complexity_embedding import complexity_embedding
 from .utils_entropy import _entropy_apen
 
 
-def complexity_tolerance(signal, method="maxApEn", r_range=None, delay=None, dimension=None, show=False):
+def complexity_tolerance(
+    signal, method="maxApEn", r_range=None, delay=None, dimension=None, show=False
+):
     """**Automated selection of tolerance (r)**
 
     Estimate and select the optimal tolerance (*r*) parameter used by other entropy and other
@@ -217,13 +219,21 @@ def complexity_tolerance(signal, method="maxApEn", r_range=None, delay=None, dim
         r = 0.2 * np.std(signal, ddof=1)
         info = {"Method": "20% SD"}
 
-    elif method in ["adjusted_sd", "nolds"] and (isinstance(dimension, (int, float)) or dimension is None):
+    elif method in ["adjusted_sd", "nolds"] and (
+        isinstance(dimension, (int, float)) or dimension is None
+    ):
         if dimension is None:
             raise ValueError("'dimension' cannot be empty for the 'nolds' method.")
-        r = 0.11604738531196232 * np.std(signal, ddof=1) * (0.5627 * np.log(dimension) + 1.3334)
+        r = (
+            0.11604738531196232
+            * np.std(signal, ddof=1)
+            * (0.5627 * np.log(dimension) + 1.3334)
+        )
         info = {"Method": "Adjusted 20% SD"}
 
-    elif method in ["chon", "chon2009"] and (isinstance(dimension, (int, float)) or dimension is None):
+    elif method in ["chon", "chon2009"] and (
+        isinstance(dimension, (int, float)) or dimension is None
+    ):
         if dimension is None:
             raise ValueError("'dimension' cannot be empty for the 'chon2009' method.")
         sd1 = np.std(np.diff(signal), ddof=1)  # short-term variability
@@ -249,28 +259,38 @@ def complexity_tolerance(signal, method="maxApEn", r_range=None, delay=None, dim
         r = (x + y * np.sqrt(sd1 / sd2)) / (len(signal) / 1000) ** 1 / 4
         info = {"Method": "Chon (2009)"}
 
-    elif method in ["neurokit", "makowski"] and (isinstance(dimension, (int, float)) or dimension is None):
+    elif method in ["neurokit", "makowski"] and (
+        isinstance(dimension, (int, float)) or dimension is None
+    ):
         # Method described in
         # https://github.com/DominiqueMakowski/ComplexityTolerance
         if dimension is None:
             raise ValueError("'dimension' cannot be empty for the 'makowski' method.")
         n = len(signal)
         r = np.std(signal, ddof=1) * (
-            0.2811 * (dimension - 1) + 0.0049 * np.log(n) - 0.02 * ((dimension - 1) * np.log(n))
+            0.2811 * (dimension - 1)
+            + 0.0049 * np.log(n)
+            - 0.02 * ((dimension - 1) * np.log(n))
         )
 
         info = {"Method": "Makowski"}
 
     elif method in ["maxapen", "optimize"]:
-        r, info = _optimize_tolerance_maxapen(signal, r_range=r_range, delay=delay, dimension=dimension)
+        r, info = _optimize_tolerance_maxapen(
+            signal, r_range=r_range, delay=delay, dimension=dimension
+        )
         info.update({"Method": "Max ApEn"})
 
     elif method in ["recurrence", "rqa"]:
-        r, info = _optimize_tolerance_recurrence(signal, r_range=r_range, delay=delay, dimension=dimension)
+        r, info = _optimize_tolerance_recurrence(
+            signal, r_range=r_range, delay=delay, dimension=dimension
+        )
         info.update({"Method": "1% Recurrence Rate"})
 
     elif method in ["neighbours", "neighbors", "nn"]:
-        r, info = _optimize_tolerance_neighbours(signal, r_range=r_range, delay=delay, dimension=dimension)
+        r, info = _optimize_tolerance_neighbours(
+            signal, r_range=r_range, delay=delay, dimension=dimension
+        )
         info.update({"Method": "2% Neighbours"})
 
     elif method in ["bin", "bins", "singh", "singh2016"]:
@@ -278,7 +298,9 @@ def complexity_tolerance(signal, method="maxApEn", r_range=None, delay=None, dim
         info.update({"Method": "bin"})
 
     else:
-        raise ValueError("NeuroKit error: complexity_tolerance(): 'method' not recognized.")
+        raise ValueError(
+            "NeuroKit error: complexity_tolerance(): 'method' not recognized."
+        )
 
     if show is True:
         _optimize_tolerance_plot(r, info, method=method, signal=signal)
@@ -293,7 +315,9 @@ def complexity_tolerance(signal, method="maxApEn", r_range=None, delay=None, dim
 def _optimize_tolerance_recurrence(signal, r_range=None, delay=None, dimension=None):
     # Optimize missing parameters
     if delay is None or dimension is None:
-        raise ValueError("If method='recurrence', both delay and dimension must be specified.")
+        raise ValueError(
+            "If method='recurrence', both delay and dimension must be specified."
+        )
 
     # Compute distance matrix
     emb = complexity_embedding(signal, delay=delay, dimension=dimension)
@@ -319,7 +343,9 @@ def _optimize_tolerance_recurrence(signal, r_range=None, delay=None, dimension=N
 def _optimize_tolerance_maxapen(signal, r_range=None, delay=None, dimension=None):
     # Optimize missing parameters
     if delay is None or dimension is None:
-        raise ValueError("If method='maxApEn', both delay and dimension must be specified.")
+        raise ValueError(
+            "If method='maxApEn', both delay and dimension must be specified."
+        )
 
     if r_range is None:
         r_range = 40
@@ -357,7 +383,10 @@ def _optimize_tolerance_neighbours(signal, r_range=None, delay=None, dimension=N
     kdtree = sklearn.neighbors.KDTree(embedded, metric="chebyshev")
     counts = np.array(
         [
-            np.mean(kdtree.query_radius(embedded, r, count_only=True).astype(np.float64) / embedded.shape[0])
+            np.mean(
+                kdtree.query_radius(embedded, r, count_only=True).astype(np.float64)
+                / embedded.shape[0]
+            )
             for r in r_range
         ]
     )

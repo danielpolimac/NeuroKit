@@ -6,7 +6,9 @@ from .utils_complexity_embedding import complexity_embedding
 from .utils_complexity_symbolize import complexity_symbolize
 
 
-def entropy_dispersion(signal, delay=1, dimension=3, c=6, symbolize="NCDF", fluctuation=False, rho=1, **kwargs):
+def entropy_dispersion(
+    signal, delay=1, dimension=3, c=6, symbolize="NCDF", fluctuation=False, rho=1, **kwargs
+):
     """**Dispersion Entropy (DispEn)**
 
     The Dispersion Entropy (DispEn). Also returns the Reverse Dispersion Entropy (RDEn).
@@ -73,7 +75,9 @@ def entropy_dispersion(signal, delay=1, dimension=3, c=6, symbolize="NCDF", fluc
     """
     # Sanity checks
     if isinstance(signal, (np.ndarray, pd.DataFrame)) and signal.ndim > 1:
-        raise ValueError("Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet.")
+        raise ValueError(
+            "Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet."
+        )
 
     # Store parameters
     info = {"Dimension": dimension, "Delay": delay, "c": c, "Symbolization": symbolize}
@@ -105,10 +109,10 @@ def entropy_dispersion(signal, delay=1, dimension=3, c=6, symbolize="NCDF", fluc
     if fluctuation is True:
         rden = np.sum((freq - (1 / ((2 * c - 1) ** (dimension - 1)))) ** 2)
     else:
-        rden = np.sum((freq - (1 / (c**dimension))) ** 2)
+        rden = np.sum((freq - (1 / (c ** dimension))) ** 2)
 
     # Normalize
-    DispEn = DispEn / np.log(c**dimension)
-    info["RDEn"] = rden / (1 - (1 / (c**dimension)))
+    DispEn = DispEn / np.log(c ** dimension)
+    info["RDEn"] = rden / (1 - (1 / (c ** dimension)))
 
     return DispEn, info

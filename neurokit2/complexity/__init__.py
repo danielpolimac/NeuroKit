@@ -1,5 +1,4 @@
 """Submodule for NeuroKit."""
-
 import functools
 
 from .complexity import complexity
@@ -98,7 +97,9 @@ complexity_cmse = functools.partial(entropy_multiscale, method="CMSEn")
 complexity_rcmse = functools.partial(entropy_multiscale, method="RCMSEn")
 complexity_fuzzymse = functools.partial(entropy_multiscale, fuzzy=True)
 complexity_fuzzycmse = functools.partial(entropy_multiscale, method="CMSEn", fuzzy=True)
-complexity_fuzzyrcmse = functools.partial(entropy_multiscale, method="RCMSEn", fuzzy=True)
+complexity_fuzzyrcmse = functools.partial(
+    entropy_multiscale, method="RCMSEn", fuzzy=True
+)
 
 
 complexity_dfa = fractal_dfa

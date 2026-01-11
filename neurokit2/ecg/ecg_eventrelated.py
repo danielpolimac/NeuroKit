@@ -139,11 +139,15 @@ def _ecg_eventrelated_phase(epoch, output={}):
 
     # Indication of atrial systole
     output["ECG_Phase_Atrial"] = epoch["ECG_Phase_Atrial"][epoch.index > 0].iloc[0]
-    output["ECG_Phase_Completion_Atrial"] = epoch["ECG_Phase_Completion_Atrial"][epoch.index > 0].iloc[0]
+    output["ECG_Phase_Completion_Atrial"] = epoch["ECG_Phase_Completion_Atrial"][
+        epoch.index > 0
+    ].iloc[0]
 
     # Indication of ventricular systole
     output["ECG_Phase_Ventricular"] = epoch["ECG_Phase_Ventricular"][epoch.index > 0].iloc[0]
-    output["ECG_Phase_Completion_Ventricular"] = epoch["ECG_Phase_Completion_Ventricular"][epoch.index > 0].iloc[0]
+    output["ECG_Phase_Completion_Ventricular"] = epoch["ECG_Phase_Completion_Ventricular"][
+        epoch.index > 0
+    ].iloc[0]
 
     return output
 
@@ -154,7 +158,8 @@ def _ecg_eventrelated_quality(epoch, output={}):
     colnames = epoch.columns.values
     if len([i for i in colnames if "ECG_Quality" in i]) == 0:
         warn(
-            "Input does not have an `ECG_Quality` column." " Quality of the signal is not computed.",
+            "Input does not have an `ECG_Quality` column."
+            " Quality of the signal is not computed.",
             category=NeuroKitWarning,
         )
         return output

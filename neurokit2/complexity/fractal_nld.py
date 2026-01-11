@@ -107,7 +107,9 @@ def fractal_nld(signal, corrected=False):
 
     # Sanity checks
     if isinstance(signal, (np.ndarray, pd.DataFrame)) and signal.ndim > 1:
-        raise ValueError("Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet.")
+        raise ValueError(
+            "Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet."
+        )
 
     # Amplitude normalization
     signal = standardize(signal)
@@ -128,7 +130,7 @@ def fractal_nld(signal, corrected=False):
             )
             nld = np.nan
         else:
-            nld = a * (nld_diff**k)
+            nld = a * (nld_diff ** k)
 
     # Compute fd
     return nld, {}

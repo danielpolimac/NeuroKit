@@ -8,7 +8,9 @@ from .entropy_sample import entropy_sample
 from .optim_complexity_tolerance import complexity_tolerance
 
 
-def entropy_hierarchical(signal, scale="default", dimension=2, tolerance="sd", show=False, **kwargs):
+def entropy_hierarchical(
+    signal, scale="default", dimension=2, tolerance="sd", show=False, **kwargs
+):
     """**Hierarchical Entropy (HEn)**
 
     Hierarchical Entropy (HEn) can be viewed as a generalization of the multiscale
@@ -71,7 +73,9 @@ def entropy_hierarchical(signal, scale="default", dimension=2, tolerance="sd", s
     """
     # Sanity checks
     if isinstance(signal, (np.ndarray, pd.DataFrame)) and signal.ndim > 1:
-        raise ValueError("Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet.")
+        raise ValueError(
+            "Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet."
+        )
 
     # Get max scale
     if isinstance(scale, str):
@@ -105,7 +109,7 @@ def entropy_hierarchical(signal, scale="default", dimension=2, tolerance="sd", s
 
     Sn = np.zeros(scale)
     for t in range(scale):
-        vals = HEns[(2**t) - 1 : (2 ** (t + 1)) - 1]
+        vals = HEns[(2 ** t) - 1 : (2 ** (t + 1)) - 1]
         Sn[t] = np.mean(vals[np.isfinite(vals)])
 
     # The HEn index is quantified as the area under the curve (AUC),
@@ -146,9 +150,9 @@ def entropy_hierarchical(signal, scale="default", dimension=2, tolerance="sd", s
             P = int((k) // 2) - 1
             if k > 1:
                 if k % 2:
-                    x[k - 1] = x[P] + N / (2**Q)
+                    x[k - 1] = x[P] + N / (2 ** Q)
                 else:
-                    x[k - 1] = x[P] - N / (2**Q)
+                    x[k - 1] = x[P] - N / (2 ** Q)
 
         Edges = np.vstack((np.repeat(np.arange(1, N), 2), np.arange(2, 2 * N))).transpose() - 1
         labx = ["".join(k) for k in np.round(HEns, 3).astype(str)]
@@ -182,12 +186,12 @@ def _hierarchical_decomposition(signal, scale=3):
             " subtree. Consider reducing the value of scale."
         )
 
-    Q = np.zeros(((2**scale) - 1, N))
+    Q = np.zeros(((2 ** scale) - 1, N))
     Q[0, :] = signal[:N]
     p = 1
     for k in range(scale - 1):
-        for n in range(2**k):
-            Temp = Q[(2**k) + n - 1, :]
+        for n in range(2 ** k):
+            Temp = Q[(2 ** k) + n - 1, :]
             # 1. We define an averaging operator Q0. It is the the low frequency component.
             Q[p, : N // 2] = (Temp[::2] + Temp[1::2]) / 2
             # 2. We define a difference frequency component. It is the the high frequency component.
