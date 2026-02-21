@@ -97,6 +97,7 @@ def entropy_spectral(signal, bins=None, show=False, **kwargs):
         idx = psd["Frequency"].values
 
     # Area under normalized spectrum should sum to 1 (np.sum(psd["Power"]))
+    psd = psd.copy()
     psd["Power"] = psd["Power"] / psd["Power"].sum()
 
     if show is True:
