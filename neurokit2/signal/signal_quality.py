@@ -184,6 +184,11 @@ def signal_quality(
         raise ValueError(
             "`signal_type` must be specified (e.g. 'ppg', 'ecg', or 'rsp')."
         )
+
+    # Standardize inputs first so all checks are case-insensitive
+    signal_type = signal_type.lower()
+    method = method.lower()
+
     if method == "ici" and (signal_type != "ppg" and signal_type != "ecg"):
         raise ValueError(
             "`method` 'ici' is only supported for 'ppg' and 'ecg' signal types."
@@ -194,10 +199,6 @@ def signal_quality(
         raise ValueError(
             "`templatematch` and `dissimilarity` require at least one detected peak."
         )
-
-    # Standardize inputs
-    signal_type = signal_type.lower()  # remove capitalised letters
-    method = method.lower()  # remove capitalised letters
 
     # Run selected quality assessment method
     if method in [
