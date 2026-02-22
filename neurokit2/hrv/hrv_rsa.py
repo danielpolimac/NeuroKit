@@ -545,7 +545,7 @@ def _hrv_rsa_formatinput(ecg_signals, rsp_signals, rpeaks=None, sampling_rate=10
                 desired_length=len(ecg_signals),
             )
         else:
-            raise ValueError("NeuroKit error: _hrv_rsa_formatinput():Wrong input, we couldn't extractheart rate signal.")
+            raise ValueError("NeuroKit error: _hrv_rsa_formatinput(): Wrong input, we couldn't extract heart rate signal.")
     if rsp_signals is None:
         rsp_signals = ecg_signals.copy()
 
