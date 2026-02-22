@@ -6,6 +6,7 @@ import pandas as pd
 from ..stats import summary_plot
 from .hrv_frequency import _hrv_frequency_show, hrv_frequency
 from .hrv_nonlinear import _hrv_nonlinear_show, hrv_nonlinear, hrv_symbolic
+from .hrv_rsa import hrv_rsa
 from .hrv_time import hrv_time
 from .hrv_utils import _hrv_format_input
 from .intervals_process import intervals_process
