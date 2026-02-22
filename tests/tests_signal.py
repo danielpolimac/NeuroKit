@@ -16,20 +16,15 @@ import neurokit2 as nk
 
 def test_signal_simulate():
     # Warning for nyquist criterion
-    with pytest.warns(
-        nk.misc.NeuroKitWarning, match=r"Skipping requested frequency.*cannot be resolved.*"
-    ):
+    with pytest.warns(nk.misc.NeuroKitWarning, match=r"Skipping requested frequency.*cannot be resolved.*"):
         nk.signal_simulate(sampling_rate=100, frequency=11, silent=False)
 
     # Warning for period duration
-    with pytest.warns(
-        nk.misc.NeuroKitWarning, match=r"Skipping requested frequency.*since its period of.*"
-    ):
+    with pytest.warns(nk.misc.NeuroKitWarning, match=r"Skipping requested frequency.*since its period of.*"):
         nk.signal_simulate(duration=1, frequency=0.1, silent=False)
 
 
 def test_signal_smooth():
-
     # TODO: test kernels other than "boxcar"
     signal = np.cos(np.linspace(start=0, stop=20, num=1000))
     smooth1 = nk.signal_smooth(signal, kernel="boxcar", size=100)
@@ -48,7 +43,6 @@ def test_signal_smooth_boxcar():
 
 
 def test_signal_binarize():
-
     signal = np.cos(np.linspace(start=0, stop=20, num=1000))
     binary = nk.signal_binarize(signal)
     assert len(binary) == 1000
@@ -58,24 +52,15 @@ def test_signal_binarize():
 
 
 def test_signal_resample():
-
     signal = np.cos(np.linspace(start=0, stop=20, num=50))
 
     downsampled_interpolation = nk.signal_resample(
         signal, method="interpolation", sampling_rate=1000, desired_sampling_rate=500
     )
-    downsampled_numpy = nk.signal_resample(
-        signal, method="numpy", sampling_rate=1000, desired_sampling_rate=500
-    )
-    downsampled_pandas = nk.signal_resample(
-        signal, method="pandas", sampling_rate=1000, desired_sampling_rate=500
-    )
-    downsampled_fft = nk.signal_resample(
-        signal, method="FFT", sampling_rate=1000, desired_sampling_rate=500
-    )
-    downsampled_poly = nk.signal_resample(
-        signal, method="poly", sampling_rate=1000, desired_sampling_rate=500
-    )
+    downsampled_numpy = nk.signal_resample(signal, method="numpy", sampling_rate=1000, desired_sampling_rate=500)
+    downsampled_pandas = nk.signal_resample(signal, method="pandas", sampling_rate=1000, desired_sampling_rate=500)
+    downsampled_fft = nk.signal_resample(signal, method="FFT", sampling_rate=1000, desired_sampling_rate=500)
+    downsampled_poly = nk.signal_resample(signal, method="poly", sampling_rate=1000, desired_sampling_rate=500)
 
     # Upsample
     upsampled_interpolation = nk.signal_resample(
@@ -84,18 +69,10 @@ def test_signal_resample():
         sampling_rate=500,
         desired_sampling_rate=1000,
     )
-    upsampled_numpy = nk.signal_resample(
-        downsampled_numpy, method="numpy", sampling_rate=500, desired_sampling_rate=1000
-    )
-    upsampled_pandas = nk.signal_resample(
-        downsampled_pandas, method="pandas", sampling_rate=500, desired_sampling_rate=1000
-    )
-    upsampled_fft = nk.signal_resample(
-        downsampled_fft, method="FFT", sampling_rate=500, desired_sampling_rate=1000
-    )
-    upsampled_poly = nk.signal_resample(
-        downsampled_poly, method="poly", sampling_rate=500, desired_sampling_rate=1000
-    )
+    upsampled_numpy = nk.signal_resample(downsampled_numpy, method="numpy", sampling_rate=500, desired_sampling_rate=1000)
+    upsampled_pandas = nk.signal_resample(downsampled_pandas, method="pandas", sampling_rate=500, desired_sampling_rate=1000)
+    upsampled_fft = nk.signal_resample(downsampled_fft, method="FFT", sampling_rate=500, desired_sampling_rate=1000)
+    upsampled_poly = nk.signal_resample(downsampled_poly, method="poly", sampling_rate=500, desired_sampling_rate=1000)
 
     # Check
     rez = pd.DataFrame(
@@ -111,7 +88,6 @@ def test_signal_resample():
 
 
 def test_signal_detrend():
-
     signal = np.cos(np.linspace(start=0, stop=10, num=1000))  # Low freq
     signal += np.cos(np.linspace(start=0, stop=100, num=1000))  # High freq
     signal += 3  # Add baseline
@@ -130,7 +106,6 @@ def test_signal_detrend():
 
 
 def test_signal_filter():
-
     signal = np.cos(np.linspace(start=0, stop=10, num=1000))  # Low freq
     signal += np.cos(np.linspace(start=0, stop=100, num=1000))  # High freq
     filtered = nk.signal_filter(signal, highcut=10)
@@ -148,9 +123,7 @@ def test_signal_filter():
     powerline = np.sin(2 * np.pi * 50 * (samples / sampling_rate))
 
     signal_corrupted = signal + powerline
-    signal_clean = nk.signal_filter(
-        signal_corrupted, sampling_rate=sampling_rate, method="powerline"
-    )
+    signal_clean = nk.signal_filter(signal_corrupted, sampling_rate=sampling_rate, method="powerline")
 
     # import matplotlib.pyplot as plt
     # figure, (ax0, ax1, ax2) = plt.subplots(nrows=3, ncols=1, sharex=True)
@@ -167,8 +140,7 @@ def test_signal_filter():
     order = 2
 
     signal_bandstop = nk.signal_filter(
-        signal_corrupted, sampling_rate=sampling_rate, lowcut=lowcut, highcut=highcut, method="butterworth",
-        order=order
+        signal_corrupted, sampling_rate=sampling_rate, lowcut=lowcut, highcut=highcut, method="butterworth", order=order
     )
 
     freqs = [highcut, lowcut]
@@ -186,28 +158,31 @@ def test_signal_filter():
 
     assert np.allclose(signal_bandstop, signal_bandstop_scipy, atol=0.2)
 
+
 def test_signal_filter_with_missing():
     sampling_rate = 100
     duration_not_missing = 10
     frequency = 2
     signal = np.concatenate(
-    [
-        nk.signal_simulate(duration=duration_not_missing, sampling_rate=sampling_rate, frequency=frequency, random_state=42),
-        [np.nan] * 1000,
-        nk.signal_simulate(duration=duration_not_missing, sampling_rate=sampling_rate, frequency=frequency, random_state=43),
-    ]
+        [
+            nk.signal_simulate(
+                duration=duration_not_missing, sampling_rate=sampling_rate, frequency=frequency, random_state=42
+            ),
+            [np.nan] * 1000,
+            nk.signal_simulate(
+                duration=duration_not_missing, sampling_rate=sampling_rate, frequency=frequency, random_state=43
+            ),
+        ]
     )
     samples = np.arange(len(signal))
     powerline = np.sin(2 * np.pi * 50 * (samples / sampling_rate))
     signal_corrupted = signal + powerline
-    signal_clean = nk.signal_filter(
-        signal_corrupted, sampling_rate=sampling_rate, method="powerline"
-    )
+    signal_clean = nk.signal_filter(signal_corrupted, sampling_rate=sampling_rate, method="powerline")
     assert signal_clean.size == signal.size
     assert np.allclose(signal_clean, signal, atol=0.2, equal_nan=True)
 
-def test_signal_interpolate():
 
+def test_signal_interpolate():
     # Test with arrays
     x_axis = np.linspace(start=10, stop=30, num=10)
     signal = np.cos(x_axis)
@@ -228,20 +203,17 @@ def test_signal_interpolate():
     assert interpolated[0] == signal.iloc[0]
     assert interpolated[-1] == signal.iloc[-1]
 
-def test_signal_findpeaks():
 
+def test_signal_findpeaks():
     signal1 = np.cos(np.linspace(start=0, stop=30, num=1000))
     info1 = nk.signal_findpeaks(signal1)
 
-    signal2 = np.concatenate(
-        [np.arange(0, 20, 0.1), np.arange(17, 30, 0.1), np.arange(30, 10, -0.1)]
-    )
+    signal2 = np.concatenate([np.arange(0, 20, 0.1), np.arange(17, 30, 0.1), np.arange(30, 10, -0.1)])
     info2 = nk.signal_findpeaks(signal2)
     assert len(info1["Peaks"]) > len(info2["Peaks"])
 
 
 def test_signal_merge():
-
     signal1 = np.cos(np.linspace(start=0, stop=10, num=100))
     signal2 = np.cos(np.linspace(start=0, stop=20, num=100))
 
@@ -251,7 +223,6 @@ def test_signal_merge():
 
 
 def test_signal_rate():  # since singal_rate wraps signal_period, the latter is tested as well
-
     # Test with array.
     duration = 10
     sampling_rate = 1000
@@ -275,15 +246,11 @@ def test_signal_rate():  # since singal_rate wraps signal_period, the latter is 
     )
     rsp_cleaned = nk.rsp_clean(rsp, sampling_rate=sampling_rate)
     signals, info = nk.rsp_peaks(rsp_cleaned)
-    rate = nk.signal_rate(
-        signals, sampling_rate=sampling_rate, desired_length=duration * sampling_rate
-    )
+    rate = nk.signal_rate(signals, sampling_rate=sampling_rate, desired_length=duration * sampling_rate)
     assert rate.shape == (signals.shape[0],)
 
     # Test with dictionary.produced from rsp_findpeaks.
-    rate = nk.signal_rate(
-        info, sampling_rate=sampling_rate, desired_length=duration * sampling_rate
-    )
+    rate = nk.signal_rate(info, sampling_rate=sampling_rate, desired_length=duration * sampling_rate)
     assert rate.shape == (duration * sampling_rate,)
 
 
@@ -294,7 +261,6 @@ def test_signal_period():
 
 
 def test_signal_plot():
-
     # Test with array
     signal = nk.signal_simulate(duration=10, sampling_rate=1000)
     nk.signal_plot(signal, sampling_rate=1000)
@@ -339,7 +305,6 @@ def test_signal_plot():
 
 
 def test_signal_power():
-
     signal1 = nk.signal_simulate(duration=20, frequency=1, sampling_rate=500)
     pwr1 = nk.signal_power(signal1, [[0.9, 1.6], [1.4, 2.0]], sampling_rate=500)
 
@@ -350,15 +315,10 @@ def test_signal_power():
 
 
 def test_signal_timefrequency():
-
-    signal = nk.signal_simulate(duration=50, frequency=5) + 2 * nk.signal_simulate(
-        duration=50, frequency=20
-    )
+    signal = nk.signal_simulate(duration=50, frequency=5) + 2 * nk.signal_simulate(duration=50, frequency=20)
 
     # short-time fourier transform
-    frequency, time, stft = nk.signal_timefrequency(
-        signal, method="stft", min_frequency=1, max_frequency=50, show=False
-    )
+    frequency, time, stft = nk.signal_timefrequency(signal, method="stft", min_frequency=1, max_frequency=50, show=False)
 
     assert len(frequency) == stft.shape[0]
     assert len(time) == stft.shape[1]
@@ -367,9 +327,7 @@ def test_signal_timefrequency():
     assert np.sum(stft[indices_freq5]) < np.sum(stft[indices_freq20])
 
     # wavelet transform
-    frequency, time, cwtm = nk.signal_timefrequency(
-        signal, method="cwt", max_frequency=50, show=False
-    )
+    frequency, time, cwtm = nk.signal_timefrequency(signal, method="cwt", max_frequency=50, show=False)
 
     assert len(frequency) == cwtm.shape[0]
     assert len(time) == cwtm.shape[1]
@@ -378,17 +336,13 @@ def test_signal_timefrequency():
     assert np.sum(cwtm[indices_freq5]) < np.sum(cwtm[indices_freq20])
 
     # Test the wavelet alternative wavelet pick a random wavelet
-    frequency, time, cwtm = nk.signal_timefrequency(
-        signal, method="cwt_cgau1", max_frequency=50, show=False
-    )
+    frequency, time, cwtm = nk.signal_timefrequency(signal, method="cwt_cgau1", max_frequency=50, show=False)
 
     assert len(frequency) == cwtm.shape[0]
     assert len(time) == cwtm.shape[1]
 
     # wvd
-    frequency, time, wvd = nk.signal_timefrequency(
-        signal, method="wvd", max_frequency=50, show=False
-    )
+    frequency, time, wvd = nk.signal_timefrequency(signal, method="wvd", max_frequency=50, show=False)
     assert len(frequency) == wvd.shape[0]
     assert len(time) == wvd.shape[1]
     indices_freq5 = np.logical_and(frequency > 3, frequency < 7)
@@ -396,9 +350,7 @@ def test_signal_timefrequency():
     assert np.sum(wvd[indices_freq5]) < np.sum(wvd[indices_freq20])
 
     # pwvd
-    frequency, time, pwvd = nk.signal_timefrequency(
-        signal, method="pwvd", max_frequency=50, show=False
-    )
+    frequency, time, pwvd = nk.signal_timefrequency(signal, method="pwvd", max_frequency=50, show=False)
     assert len(frequency) == pwvd.shape[0]
     assert len(time) == pwvd.shape[1]
     indices_freq5 = np.logical_and(frequency > 3, frequency < 7)
@@ -419,15 +371,11 @@ def test_signal_distort():
     signal = nk.signal_simulate(duration=10, frequency=0.5, sampling_rate=10)
 
     # Warning for nyquist criterion
-    with pytest.warns(
-        nk.misc.NeuroKitWarning, match=r"Skipping requested noise frequency.*cannot be resolved.*"
-    ):
+    with pytest.warns(nk.misc.NeuroKitWarning, match=r"Skipping requested noise frequency.*cannot be resolved.*"):
         nk.signal_distort(signal, sampling_rate=10, noise_amplitude=1, silent=False)
 
     # Warning for period duration
-    with pytest.warns(
-        nk.misc.NeuroKitWarning, match=r"Skipping requested noise frequency.*since its period of.*"
-    ):
+    with pytest.warns(nk.misc.NeuroKitWarning, match=r"Skipping requested noise frequency.*since its period of.*"):
         signal = nk.signal_simulate(duration=1, frequency=1, sampling_rate=10)
         nk.signal_distort(signal, noise_amplitude=1, noise_frequency=0.1, silent=False)
 
@@ -448,100 +396,81 @@ def test_signal_surrogate():
     assert np.allclose(np.mean(x), np.mean(surrogate))
     assert np.allclose(np.var(x), np.var(surrogate))
     # Check distribution
-    assert np.allclose(
-        np.histogram(x, 10, (0, 1))[0],
-        np.histogram(surrogate, 10, (0, 1))[0],
-        atol=1
-    )
+    assert np.allclose(np.histogram(x, 10, (0, 1))[0], np.histogram(surrogate, 10, (0, 1))[0], atol=1)
     # Check spectrum
-    assert (
-        np.mean(np.abs(np.abs(np.fft.rfft(surrogate - np.mean(surrogate)))
-                       - np.abs(np.fft.rfft(x - np.mean(x))))) < 0.1
-    )
+    assert np.mean(np.abs(np.abs(np.fft.rfft(surrogate - np.mean(surrogate))) - np.abs(np.fft.rfft(x - np.mean(x))))) < 0.1
 
 
 def test_signal_quality():
-
     # smoke test for each signal type
     duration = 30
     sampling_rate = 100
     random_state = 42
     freq = 1
 
-    for signal_type in ['ppg', 'ecg', 'rsp']:
+    for signal_type in ["ppg", "ecg", "rsp"]:
         # setup for this signal
-        if signal_type == 'ppg':
+        if signal_type == "ppg":
             signal = nk.ppg_simulate(
-                    duration=duration,
-                    ibi_randomness=0,
-                    frequency_modulation=0,
-                    powerline_amplitude=0,
-                    motion_amplitude=0,
-                    random_state=random_state,
-                    sampling_rate=sampling_rate
+                duration=duration,
+                ibi_randomness=0,
+                frequency_modulation=0,
+                powerline_amplitude=0,
+                motion_amplitude=0,
+                random_state=random_state,
+                sampling_rate=sampling_rate,
             )
             _, peaks = nk.ppg_peaks(signal, sampling_rate=sampling_rate)
             cycle_inds = peaks["PPG_Peaks"]
-        elif signal_type == 'ecg':
-            signal = nk.ecg_simulate(
-                    duration=duration,
-                    noise=0,
-                    random_state=random_state,
-                    sampling_rate=sampling_rate
-            )
+        elif signal_type == "ecg":
+            signal = nk.ecg_simulate(duration=duration, noise=0, random_state=random_state, sampling_rate=sampling_rate)
             _, rpeaks = nk.ecg_peaks(signal, sampling_rate=sampling_rate)
             cycle_inds = rpeaks["ECG_R_Peaks"]
-        elif signal_type == 'rsp':
-            signal = nk.rsp_simulate(
-                    duration=duration,
-                    noise=0,
-                    random_state=random_state,
-                    sampling_rate=sampling_rate
-            )
+        elif signal_type == "rsp":
+            signal = nk.rsp_simulate(duration=duration, noise=0, random_state=random_state, sampling_rate=sampling_rate)
             signal = -1 * scipy.signal.detrend(signal)
             _, peaks = nk.rsp_peaks(signal, sampling_rate=sampling_rate, method="bettermann1996")
             cycle_inds = peaks["RSP_Peaks"]
 
         # assess quality for this signal using each method
-        for method in ['templatematch', 'dissimilarity', 'ici']:
-            if method == 'ici' and signal_type == 'rsp':
+        for method in ["templatematch", "dissimilarity", "ici"]:
+            if method == "ici" and signal_type == "rsp":
                 # ASSERTION: Check that the specific ValueError is raised
                 with pytest.raises(ValueError, match=r"`method` 'ici' is only supported for 'ppg' and 'ecg' signal types."):
                     # Call the function with the problematic inputs
                     quality = nk.signal_quality(
                         signal, sampling_rate=sampling_rate, cycle_inds=cycle_inds, signal_type=signal_type, method=method
-                        )
+                    )
                 continue  # skip for ICI and RSP (as these aren't compatible)
             quality = nk.signal_quality(
                 signal, sampling_rate=sampling_rate, cycle_inds=cycle_inds, signal_type=signal_type, method=method
-                )
+            )
             # check output is of expected length (same length as input signal)
-            assert len(quality) == duration*sampling_rate
+            assert len(quality) == duration * sampling_rate
 
             # Check regressions in outputs
-            if signal_type == 'ppg':
-                if method == 'templatematch':
+            if signal_type == "ppg":
+                if method == "templatematch":
                     assert np.isclose(np.mean(quality), 1, atol=1e-2)
-                elif method == 'dissimilarity':
+                elif method == "dissimilarity":
                     assert np.isclose(np.mean(quality), 0, atol=1e-3)
-                elif method == 'ici':
+                elif method == "ici":
                     assert np.isclose(np.mean(quality), 1, atol=1e-3)
-            elif signal_type == 'ecg':
-                if method == 'templatematch':
+            elif signal_type == "ecg":
+                if method == "templatematch":
                     assert np.isclose(np.mean(quality), 1, atol=1e-1)
-                elif method == 'dissimilarity':
+                elif method == "dissimilarity":
                     assert np.isclose(np.mean(quality), 0, atol=1e-3)
-                elif method == 'ici':
+                elif method == "ici":
                     assert np.isclose(np.mean(quality), 1, atol=1e-1)
-            elif signal_type == 'rsp':
-                if method == 'templatematch':
+            elif signal_type == "rsp":
+                if method == "templatematch":
                     assert np.isclose(np.mean(quality), 1, atol=1e-2)
-                elif method == 'dissimilarity':
+                elif method == "dissimilarity":
                     assert np.isclose(np.mean(quality), 0, atol=1e-3)
-
 
     # Test on zero signals
-    signal_zeros = np.zeros(sampling_rate*duration)
+    signal_zeros = np.zeros(sampling_rate * duration)
     peaks = np.array([])
 
     # Test unknown method name
@@ -549,10 +478,14 @@ def test_signal_quality():
         _ = nk.signal_quality(signal_zeros, cycle_inds=[1], signal_type="ecg", method="unknown", sampling_rate=sampling_rate)
 
     with pytest.raises(ValueError, match="require at least one detected peak."):
-        _ = nk.signal_quality(signal_zeros, cycle_inds=peaks, signal_type="ecg", method="templatematch", sampling_rate=sampling_rate)
+        _ = nk.signal_quality(
+            signal_zeros, cycle_inds=peaks, signal_type="ecg", method="templatematch", sampling_rate=sampling_rate
+        )
 
     with pytest.raises(ValueError, match="require at least one detected peak."):
-        _ = nk.signal_quality(signal_zeros, cycle_inds=peaks, signal_type="ecg", method="dissimilarity", sampling_rate=sampling_rate)
+        _ = nk.signal_quality(
+            signal_zeros, cycle_inds=peaks, signal_type="ecg", method="dissimilarity", sampling_rate=sampling_rate
+        )
 
     quality = nk.signal_quality(signal_zeros, cycle_inds=peaks, signal_type="ecg", method="ici", sampling_rate=sampling_rate)
 
@@ -568,10 +501,14 @@ def test_signal_quality():
     signal = signal[first_peak:]
     peaks = peaks[1:] - first_peak
 
-    quality = nk.signal_quality(signal, cycle_inds=peaks, signal_type="ecg", method="templatematch", sampling_rate=sampling_rate)
+    quality = nk.signal_quality(
+        signal, cycle_inds=peaks, signal_type="ecg", method="templatematch", sampling_rate=sampling_rate
+    )
     assert np.allclose(quality, np.ones_like(quality))
 
-    quality = nk.signal_quality(signal, cycle_inds=peaks, signal_type="ecg", method="dissimilarity", sampling_rate=sampling_rate)
+    quality = nk.signal_quality(
+        signal, cycle_inds=peaks, signal_type="ecg", method="dissimilarity", sampling_rate=sampling_rate
+    )
     assert np.allclose(quality, np.zeros_like(quality))
 
     # Test on signals that cancel each other out
@@ -583,32 +520,37 @@ def test_signal_quality():
     mid_peak = peaks[15] - 75
     signal = signal[first_peak:]
     peaks = peaks[1:-1] - first_peak
-    signal[mid_peak:] = - signal[mid_peak:]
+    signal[mid_peak:] = -signal[mid_peak:]
     peaks = [peak if peak < len(signal) // 2 else peak + 100 for peak in peaks]
 
     signal = signal[:last_peak]
     peaks_s = np.zeros_like(signal)
     peaks_s[peaks] = 1
 
-    quality = nk.signal_quality(signal, cycle_inds=peaks, signal_type="ecg", method="templatematch", sampling_rate=sampling_rate)
+    quality = nk.signal_quality(
+        signal, cycle_inds=peaks, signal_type="ecg", method="templatematch", sampling_rate=sampling_rate
+    )
     assert np.isclose(np.mean(quality), 0, atol=1e-3)
 
-    quality = nk.signal_quality(signal, cycle_inds=peaks, signal_type="ecg", method="dissimilarity", sampling_rate=sampling_rate)
+    quality = nk.signal_quality(
+        signal, cycle_inds=peaks, signal_type="ecg", method="dissimilarity", sampling_rate=sampling_rate
+    )
     assert np.isclose(np.mean(quality), 0, atol=1e-1)
 
-
     # Test signals without peaks
-    signal_zeros = np.zeros(sampling_rate*duration)
+    signal_zeros = np.zeros(sampling_rate * duration)
     peaks = np.array([])
 
     with pytest.raises(ValueError, match="`templatematch` and `dissimilarity` require at least one detected peak."):
-        _ = nk.signal_quality(signal_zeros, cycle_inds=peaks, signal_type="ecg", method="templatematch", sampling_rate=sampling_rate)
+        _ = nk.signal_quality(
+            signal_zeros, cycle_inds=peaks, signal_type="ecg", method="templatematch", sampling_rate=sampling_rate
+        )
 
     with pytest.raises(ValueError, match="`templatematch` and `dissimilarity` require at least one detected peak."):
-        _ = nk.signal_quality(signal_zeros, cycle_inds=peaks, signal_type="ecg", method="dissimilarity", sampling_rate=sampling_rate)
+        _ = nk.signal_quality(
+            signal_zeros, cycle_inds=peaks, signal_type="ecg", method="dissimilarity", sampling_rate=sampling_rate
+        )
 
     quality = nk.signal_quality(signal_zeros, cycle_inds=peaks, signal_type="ecg", method="ici", sampling_rate=sampling_rate)
 
     assert np.allclose(quality, np.zeros_like(quality))
-
-

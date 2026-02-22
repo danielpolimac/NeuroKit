@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
 import scipy.signal
@@ -181,12 +180,8 @@ def _rsp_findpeaks_khodadad(rsp_cleaned, amplitude_min=0.3):
 def _rsp_findpeaks_scipy(rsp_cleaned, sampling_rate, peak_distance=0.8, peak_prominence=0.5):
     """https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html"""
     peak_distance = sampling_rate * peak_distance
-    peaks, _ = scipy.signal.find_peaks(
-        rsp_cleaned, distance=peak_distance, prominence=peak_prominence
-    )
-    troughs, _ = scipy.signal.find_peaks(
-        -rsp_cleaned, distance=peak_distance, prominence=peak_prominence
-    )
+    peaks, _ = scipy.signal.find_peaks(rsp_cleaned, distance=peak_distance, prominence=peak_prominence)
+    troughs, _ = scipy.signal.find_peaks(-rsp_cleaned, distance=peak_distance, prominence=peak_prominence)
 
     # Combine peaks and troughs and sort them.
     extrema = np.sort(np.concatenate((peaks, troughs)))
@@ -224,7 +219,6 @@ def _rsp_findpeaks_extrema(rsp_cleaned):
     # crossing and falling zero crossing.
     extrema = []
     for i in range(len(allx) - 1):
-
         # Determine whether to search for minimum or maximum.
         if startx == "rise":
             if (i + 1) % 2 != 0:
@@ -250,7 +244,6 @@ def _rsp_findpeaks_extrema(rsp_cleaned):
 
 
 def _rsp_findpeaks_outliers(rsp_cleaned, extrema, amplitude_min=0.3):
-
     # Only consider those extrema that have a minimum vertical distance to
     # their direct neighbor, i.e., define outliers in absolute amplitude
     # difference between neighboring extrema.

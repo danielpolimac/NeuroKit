@@ -1,15 +1,14 @@
 """
 https://openneuro.org/datasets/ds003685/
 """
+
 import os
 import re
 import shutil
 
 import mne
-import numpy as np
 import openneuro as on
 
-import neurokit2 as nk
 
 # Download cleaned data (takes some time)
 on.download(
@@ -37,7 +36,6 @@ for sub in os.listdir(path):
             f.write(text)
 
     for file in [f for f in os.listdir(newpath) if ".vhdr" in f]:
-
         with open(newpath + file, "r+") as f:
             text = f.read()  # read everything in the file
             pattern = re.search("DataFile=.*\\n", text).group(0)

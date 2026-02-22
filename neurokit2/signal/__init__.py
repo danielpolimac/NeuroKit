@@ -34,6 +34,7 @@ from .signal_tidypeaksonsets import signal_tidypeaksonsets
 from .signal_timefrequency import signal_timefrequency
 from .signal_zerocrossings import signal_zerocrossings
 
+
 __all__ = [
     "signal_simulate",
     "signal_binarize",

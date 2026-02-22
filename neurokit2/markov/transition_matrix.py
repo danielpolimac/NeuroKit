@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -113,10 +112,7 @@ def transition_matrix(sequence, order=1, adjust=True, show=False):
 
     if show is True:
         if order > 1:
-            raise ValueError(
-                "Visualization of order > 1 not supported yet. "
-                "Consider helping us to implement it!"
-            )
+            raise ValueError("Visualization of order > 1 not supported yet. Consider helping us to implement it!")
         fig, ax = plt.subplots()
         ax.imshow(tm, cmap="Reds", interpolation="nearest")
         ax.set_xticks(np.arange(len(tm)))
@@ -148,21 +144,17 @@ def _sanitize_tm_input(tm, probs=True):
     if isinstance(tm, pd.DataFrame) and tm.shape[1] == tm.shape[0]:
         if tm.values.max() > 1:
             if probs is True:
-                raise ValueError(
-                    "Transition matrix must be a probability matrix (all probabilities must be"
-                    " < 1)."
-                )
+                raise ValueError("Transition matrix must be a probability matrix (all probabilities must be < 1).")
             else:
                 return tm
+        elif probs is True:
+            return tm
         else:
-            if probs is True:
-                return tm
-            else:
-                raise ValueError(
-                    "Transition matrix must be a frequency matrix containing counts and not"
-                    " probabilities. Please pass the `info['Occurrences']` object instead of"
-                    " the transition matrix."
-                )
+            raise ValueError(
+                "Transition matrix must be a frequency matrix containing counts and not"
+                " probabilities. Please pass the `info['Occurrences']` object instead of"
+                " the transition matrix."
+            )
 
     # Otherwise, conver to TM
     else:

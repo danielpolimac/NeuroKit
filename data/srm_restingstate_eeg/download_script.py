@@ -1,6 +1,7 @@
 """
 https://openneuro.org/datasets/ds003775/versions/1.0.0
 """
+
 import os
 import shutil
 
@@ -9,6 +10,7 @@ import numpy as np
 import openneuro as on
 
 import neurokit2 as nk
+
 
 # Download cleaned data (takes some time)
 on.download(
@@ -30,10 +32,8 @@ for sub in os.listdir(path):
 
     # Clean
     raw = raw.notch_filter(freqs=np.arange(50, 501, 50), verbose=False)
-    raw.info["bads"], _ = nk.eeg_badchannels(
-        raw, bad_threshold=0.33, distance_threshold=0.99, show=False
-    )
-    print("Bad channels: " + str(len(raw.info['bads'])))
+    raw.info["bads"], _ = nk.eeg_badchannels(raw, bad_threshold=0.33, distance_threshold=0.99, show=False)
+    print("Bad channels: " + str(len(raw.info["bads"])))
     raw = raw.interpolate_bads()
 
     raw.save("eeg/" + sub + "_raw.fif", overwrite=True)

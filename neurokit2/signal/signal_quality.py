@@ -1,9 +1,8 @@
-# - * - coding: utf-8 - * -
 import numpy as np
 from scipy.stats import entropy as scipy_entropy
 
 from ..epochs import epochs_to_df
-from ..signal import signal_interpolate, signal_cyclesegment
+from ..signal import signal_cyclesegment, signal_interpolate
 
 
 def signal_quality(
@@ -181,29 +180,19 @@ def signal_quality(
 
     # Check inputs
     if signal_type is None:
-        raise ValueError(
-            "`signal_type` must be specified (e.g. 'ppg', 'ecg', or 'rsp')."
-        )
+        raise ValueError("`signal_type` must be specified (e.g. 'ppg', 'ecg', or 'rsp').")
 
     # Standardize inputs first so all checks are case-insensitive
     signal_type = signal_type.lower()
     method = method.lower()
 
     if method == "ici" and (signal_type != "ppg" and signal_type != "ecg"):
-        raise ValueError(
-            "`method` 'ici' is only supported for 'ppg' and 'ecg' signal types."
-        )
-    if method not in ["ici", "skewness", "kurtosis", "entropy"] and (
-        cycle_inds is None or len(cycle_inds) == 0
-    ):
-        raise ValueError(
-            "`templatematch` and `dissimilarity` require at least one detected peak."
-        )
+        raise ValueError("`method` 'ici' is only supported for 'ppg' and 'ecg' signal types.")
+    if method not in ["ici", "skewness", "kurtosis", "entropy"] and (cycle_inds is None or len(cycle_inds) == 0):
+        raise ValueError("`templatematch` and `dissimilarity` require at least one detected peak.")
 
     # Run selected quality assessment method
-    if method in [
-        "templatematch"
-    ]:  # Based on the approach in Orphanidou et al. (2015) and Charlton et al. (2021)
+    if method in ["templatematch"]:  # Based on the approach in Orphanidou et al. (2015) and Charlton et al. (2021)
         quality = _quality_templatematch(
             signal,
             cycle_inds=cycle_inds,
@@ -267,14 +256,10 @@ def signal_quality(
 # =============================================================================
 def _calc_template_morph(signal, cycle_inds, signal_type, sampling_rate=1000):
     # Segment to get individual cycle morphologies
-    cycles, average_cycle_rate = signal_cyclesegment(
-        signal, cycle_inds, sampling_rate=sampling_rate
-    )
+    cycles, average_cycle_rate = signal_cyclesegment(signal, cycle_inds, sampling_rate=sampling_rate)
 
     # convert these to dataframe
-    ind_morph = epochs_to_df(cycles).pivot(
-        index="Label", columns="Time", values="Signal"
-    )
+    ind_morph = epochs_to_df(cycles).pivot(index="Label", columns="Time", values="Signal")
     ind_morph.index = ind_morph.index.astype(int)
     ind_morph = ind_morph.sort_index()
 
@@ -292,9 +277,7 @@ def _calc_template_morph(signal, cycle_inds, signal_type, sampling_rate=1000):
 # =============================================================================
 # Quality assessment using template-matching method
 # =============================================================================
-def _quality_templatematch(
-    signal, cycle_inds=None, signal_type="ppg", sampling_rate=1000
-):
+def _quality_templatematch(signal, cycle_inds=None, signal_type="ppg", sampling_rate=1000):
     # Obtain individual cycle morphologies and template cycle morphology
     templ_morph, ind_morph, cycle_inds = _calc_template_morph(
         signal,
@@ -310,9 +293,7 @@ def _quality_templatematch(
         cc[cycle_no] = temp[0, 1]
 
     # Interpolate cycle-by-cycle CCs
-    quality = signal_interpolate(
-        cycle_inds[0:-1], cc, x_new=np.arange(len(signal)), method="previous"
-    )
+    quality = signal_interpolate(cycle_inds[0:-1], cc, x_new=np.arange(len(signal)), method="previous")
 
     return quality
 
@@ -353,9 +334,7 @@ def _calc_dis(pw1, pw2):
 # =============================================================================
 # Quality assessment using dissimilarity method
 # =============================================================================
-def _quality_dissimilarity(
-    signal, cycle_inds=None, signal_type="ppg", sampling_rate=1000
-):
+def _quality_dissimilarity(signal, cycle_inds=None, signal_type="ppg", sampling_rate=1000):
     # Obtain individual cycle morphologies and template cycle morphology
     templ_morph, ind_morph, cycle_inds = _calc_template_morph(
         signal,
@@ -370,9 +349,7 @@ def _quality_dissimilarity(
         dis[cycle_no] = _calc_dis(ind_morph.iloc[cycle_no], templ_morph)
 
     # Interpolate cycle-by-cycle dis's
-    quality = signal_interpolate(
-        cycle_inds[0:-1], dis, x_new=np.arange(len(signal)), method="previous"
-    )
+    quality = signal_interpolate(cycle_inds[0:-1], dis, x_new=np.arange(len(signal)), method="previous")
 
     return quality
 
@@ -395,18 +372,14 @@ def _quality_ici(
         elif signal_type == "ppg":
             primary_detector = "charlton"
         else:
-            raise Exception(
-                "default ICI quality assessment detectors only available for ECG and PPG signals."
-            )
+            raise Exception("default ICI quality assessment detectors only available for ECG and PPG signals.")
     if secondary_detector is None:
         if signal_type == "ecg":
             secondary_detector = "neurokit"
         elif signal_type == "ppg":
             secondary_detector = "elgendi"
         else:
-            raise Exception(
-                "default ICI quality assessment detectors only available for ECG and PPG signals."
-            )
+            raise Exception("default ICI quality assessment detectors only available for ECG and PPG signals.")
 
     # Sanitize inputs
     signal_type = signal_type.lower()  # remove capitalised letters
@@ -447,10 +420,7 @@ def _quality_ici(
         match_end = any(abs(end - s) <= tolerance_samps for s in cycles_secondary)
 
         # check whether the secondary detector has detected any additional cycles within the ICI
-        cycle_within_IBI = any(
-            (start + tolerance_samps) < s < (end - tolerance_samps)
-            for s in cycles_secondary
-        )
+        cycle_within_IBI = any((start + tolerance_samps) < s < (end - tolerance_samps) for s in cycles_secondary)
 
         # if they have both detected cycles within the tolerance, and there are not additional cycles within the ICI
         if match_start and match_end and not cycle_within_IBI:
@@ -473,18 +443,17 @@ def _filter_close_cycles(cycles, signal, tolerance_samps):
     for i in range(1, len(cycles)):
         if cycles[i] - filtered[-1] > tolerance_samps:
             filtered.append(cycles[i])
-        else:
-            # Keep the higher amplitude peak
-            if signal[cycles[i]] > signal[filtered[-1]]:
-                filtered[-1] = cycles[i]
+        # Keep the higher amplitude peak
+        elif signal[cycles[i]] > signal[filtered[-1]]:
+            filtered[-1] = cycles[i]
 
     return filtered
 
 
 def _signal_cycles(signal, signal_type, cycle_detector, sampling_rate):
     # Import peak-detection functions (placed here to avoid circular imports)
-    from ..ppg import ppg_peaks
     from ..ecg import ecg_peaks
+    from ..ppg import ppg_peaks
 
     if signal_type == "ecg":
         # Detect beats in ECG signal
@@ -565,9 +534,7 @@ def _quality_windowed_metric(
             metric_values.append(val)
         elif metric == "entropy":
             # Bin the data
-            bin_counts, _ = np.histogram(
-                window, bins=no_bins, range=(np.min(window), np.max(window))
-            )
+            bin_counts, _ = np.histogram(window, bins=no_bins, range=(np.min(window), np.max(window)))
             bin_p = bin_counts / window_size
             # Use scipy's entropy function (base e), normalize by log(1/no_bins) for consistency with previous code
             mask = bin_p > 0
@@ -575,9 +542,7 @@ def _quality_windowed_metric(
             metric_values.append(ent)
 
     # interpolate
-    window_centers = (
-        np.arange(0, n_samples - window_size + 1, step_size) + window_size // 2
-    )
+    window_centers = np.arange(0, n_samples - window_size + 1, step_size) + window_size // 2
     output = signal_interpolate(
         x_values=window_centers,
         y_values=metric_values,

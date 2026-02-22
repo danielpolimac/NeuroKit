@@ -7,14 +7,7 @@ from ..stats import rescale
 from .ppg_findpeaks import ppg_findpeaks
 
 
-def ppg_peaks(
-    ppg_cleaned,
-    sampling_rate=1000,
-    method="elgendi",
-    correct_artifacts=False,
-    show=False,
-    **kwargs
-):
+def ppg_peaks(ppg_cleaned, sampling_rate=1000, method="elgendi", correct_artifacts=False, show=False, **kwargs):
     """**Find systolic peaks in a photoplethysmogram (PPG) signal**
 
     Find the peaks in a PPG signal using the specified method. You can pass an unfiltered PPG
@@ -24,11 +17,11 @@ def ppg_peaks(
     Methods available (see `ppg_findpeaks` for details):
 
     * ``"elgendi"``: Method by Elgendi et al. (2013), based on moving average and thresholding.
-    * ``"bishop"``: Method by Bishop & Ercole (2018), multi-scale peak and trough detection. Returns pulse onsets as 
+    * ``"bishop"``: Method by Bishop & Ercole (2018), multi-scale peak and trough detection. Returns pulse onsets as
       well as peaks.
-    * ``"charlton"``: MSPTDfastv2 method by Charlton et al. (2025). Uses an efficient multi-scale peak and trough 
+    * ``"charlton"``: MSPTDfastv2 method by Charlton et al. (2025). Uses an efficient multi-scale peak and trough
       detection algorithm. Returns pulse onsets as well as peaks.
-    * ``"charlton2024"``: MSPTDfastv1 method by Charlton et al. (2024). Returns pulse onsets as well as peaks. Uses 
+    * ``"charlton2024"``: MSPTDfastv1 method by Charlton et al. (2024). Returns pulse onsets as well as peaks. Uses
       an efficient multi-scale peak and trough detection algorithm. Now superseded by v2 (i.e. ``charlton``).
 
     Parameters
@@ -109,19 +102,11 @@ def ppg_peaks(
     # Store info
     info = {"method_peaks": method.lower(), "method_fixpeaks": "None"}
 
-    info.update(
-        ppg_findpeaks(
-            ppg_cleaned,
-            sampling_rate=sampling_rate,
-            method=method,
-            show=False,
-            **kwargs
-        )
-    )
+    info.update(ppg_findpeaks(ppg_cleaned, sampling_rate=sampling_rate, method=method, show=False, **kwargs))
 
     # Peak (and onset) correction
     # - tidy up peaks and onsets
-    if info['method_fixpeaks'].lower() == "charlton2022":  # this is the default setting when using MSPTDfastv1 or MSPTDfastv2
+    if info["method_fixpeaks"].lower() == "charlton2022":  # this is the default setting when using MSPTDfastv1 or MSPTDfastv2
         info["PPG_Peaks_Unfixed"] = info["PPG_Peaks"].copy()
         info["PPG_Onsets_Unfixed"] = info["PPG_Onsets"].copy()
 
@@ -133,19 +118,16 @@ def ppg_peaks(
         fixpeaks = {"PPG_fixpeaks_" + str(key): val for key, val in fixpeaks.items()}
         info.update(fixpeaks)
 
-
     # - perform peak correction
     if correct_artifacts:
         info["PPG_Peaks_Uncorrected"] = info["PPG_Peaks"].copy()
 
-        fixpeaks, info["PPG_Peaks"] = signal_fixpeaks(
-            info["PPG_Peaks"], sampling_rate=sampling_rate, method="Kubios"
-        )
+        fixpeaks, info["PPG_Peaks"] = signal_fixpeaks(info["PPG_Peaks"], sampling_rate=sampling_rate, method="Kubios")
 
         # Add prefix and merge
         fixpeaks = {"PPG_fixpeaks_" + str(key): val for key, val in fixpeaks.items()}
         info.update(fixpeaks)
-    
+
     # Format output
     signals = signal_formatpeaks(
         dict(PPG_Peaks=info["PPG_Peaks"]),

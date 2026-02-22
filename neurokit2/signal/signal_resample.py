@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
 import scipy.ndimage
@@ -105,9 +104,7 @@ def signal_resample(
 
     """
     if desired_length == ():  # noqa: F632
-        desired_length = int(
-            np.round(len(signal) * desired_sampling_rate / sampling_rate)
-        )
+        desired_length = int(np.round(len(signal) * desired_sampling_rate / sampling_rate))
 
     # Sanity checks
     if len(signal) == desired_length:
@@ -185,9 +182,7 @@ def _resample_sanitize(resampled_signal, desired_length):
     # Adjust extremities
     diff = len(resampled_signal) - desired_length
     if diff < 0:
-        resampled_signal = np.concatenate(
-            [resampled_signal, np.full(np.abs(diff), resampled_signal[-1])]
-        )
+        resampled_signal = np.concatenate([resampled_signal, np.full(np.abs(diff), resampled_signal[-1])])
     elif diff > 0:
         resampled_signal = resampled_signal[0:desired_length]
     return resampled_signal

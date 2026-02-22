@@ -1,7 +1,7 @@
+import matplotlib.pyplot as plt
 import mne
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 import neurokit2 as nk
 
@@ -12,7 +12,6 @@ import neurokit2 as nk
 
 
 def test_eeg_add_channel():
-
     raw = mne.io.read_raw_fif(str(mne.datasets.sample.data_path()) + "/MEG/sample/sample_audvis_raw.fif", preload=True)
 
     # len(channel) > len(raw)
@@ -47,9 +46,7 @@ def test_eeg_add_channel():
     sync_index_channel = 100
     for i in df2["Added_Channel"].tail(abs(sync_index_channel - sync_index_raw) + (len(raw) - len(ecg2))):
         assert np.isnan(i)
-    assert np.isfinite(
-        df2["Added_Channel"].iloc[-abs(sync_index_channel - sync_index_raw) - (len(raw) - len(ecg2)) - 1]
-    )
+    assert np.isfinite(df2["Added_Channel"].iloc[-abs(sync_index_channel - sync_index_raw) - (len(raw) - len(ecg2)) - 1])
 
 
 def test_eeg_badchannels():
@@ -94,11 +91,7 @@ def test_eeg_badchannels():
     assert results_simple.loc[0, "Amplitude"] > 0
 
     # Test mne Raw object input and test the show command
-    mne_info = mne.create_info(
-        ch_names = ['0', '1'],
-        sfreq = 100,
-        ch_types = ['eeg'] * 2
-    )
+    mne_info = mne.create_info(ch_names=["0", "1"], sfreq=100, ch_types=["eeg"] * 2)
 
     mne_raw = mne.io.RawArray(data=simple_data, info=mne_info)
 
@@ -106,14 +99,14 @@ def test_eeg_badchannels():
 
     # Check if a figure opened
     assert len(plt.get_fignums()) == prev_fignums + 1
-    plt.close('all')
+    plt.close("all")
 
     # Check if results are the same as above
     assert bads_mne == bads_simple
     assert results_mne.equals(results_simple)
 
     # Test Pandas DataFrame
-    df_simple = pd.DataFrame(simple_data.T, columns = ['0', '1'])
+    df_simple = pd.DataFrame(simple_data.T, columns=["0", "1"])
 
     bads_pandas, results_pandas = nk.eeg_badchannels(df_simple)
 
@@ -141,7 +134,6 @@ def test_eeg_badchannels():
 
 
 def test_mne_channel_extract():
-
     raw = mne.io.read_raw_fif(str(mne.datasets.sample.data_path()) + "/MEG/sample/sample_audvis_raw.fif", preload=True)
 
     # Extract 1 channel
@@ -168,7 +160,6 @@ def test_mne_channel_extract():
 
 
 def test_mne_to_df():
-
     raw = mne.io.read_raw_fif(str(mne.datasets.sample.data_path()) + "/MEG/sample/sample_audvis_filt-0-40_raw.fif")
     assert len(nk.mne_to_df(raw)) == 41700
 

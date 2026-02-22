@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
 
@@ -113,7 +112,6 @@ def eog_features(eog_cleaned, peaks, sampling_rate=1000):
 
 
 def _eog_features_delineate(eog_cleaned, candidates, sampling_rate=1000):
-
     # Calculate blink landmarks
     epochs = epochs_create(
         eog_cleaned,
@@ -164,9 +162,7 @@ def _eog_features_delineate(eog_cleaned, candidates, sampling_rate=1000):
         else:
             max_value_t = epochs[i].Signal.idxmax()
             sliced_before = epochs[i].loc[slice(max_value_t), :]
-            leftzero = sliced_before["Index"].loc[
-                sliced_before["Signal"] == sliced_before["Signal"].min()
-            ]
+            leftzero = sliced_before["Index"].loc[sliced_before["Signal"] == sliced_before["Signal"].min()]
             leftzero = np.array(leftzero).item()
 
         if (max_position + 1) < len(crossings_idx):  # crosses zero point
@@ -175,9 +171,7 @@ def _eog_features_delineate(eog_cleaned, candidates, sampling_rate=1000):
             max_value_t = epochs[i].Signal.idxmax()
             sliced_before = epochs[i].loc[slice(max_value_t), :]
             sliced_after = epochs[i].tail(epochs[i].shape[0] - sliced_before.shape[0])
-            rightzero = sliced_after["Index"].loc[
-                sliced_after["Signal"] == sliced_after["Signal"].min()
-            ]
+            rightzero = sliced_after["Index"].loc[sliced_after["Signal"] == sliced_after["Signal"].min()]
             rightzero = np.array(rightzero).item()
 
         # upstroke and downstroke markers

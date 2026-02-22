@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from warnings import warn
 
 import numpy as np
@@ -95,7 +94,7 @@ def rsp_clean(rsp_signal, sampling_rate=1000, method="khodadad2018", **kwargs):
     elif method == "biosppy":
         clean = _rsp_clean_biosppy(rsp_signal, sampling_rate)
     elif method in ["power", "power2020", "hampel"]:
-        clean = _rsp_clean_hampel(rsp_signal,**kwargs)
+        clean = _rsp_clean_hampel(rsp_signal, **kwargs)
     elif method in ["charlton", "charlton2021"]:
         clean = _rsp_clean_charlton2021(rsp_signal, sampling_rate)
     elif method is None or method == "none":
@@ -112,7 +111,6 @@ def rsp_clean(rsp_signal, sampling_rate=1000, method="khodadad2018", **kwargs):
 # Handle missing data
 # =============================================================================
 def _rsp_clean_missing(rsp_signal):
-
     rsp_signal = pd.DataFrame.pad(pd.Series(rsp_signal))
 
     return rsp_signal
@@ -128,7 +126,7 @@ def _rsp_clean_charlton2021(rsp_signal, sampling_rate=1000):
     <https://doi.org/10.1016/j.bspc.2020.102339>`_.
 
     """
-    
+
     clean = signal_filter(
         rsp_signal,
         sampling_rate=sampling_rate,

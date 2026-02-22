@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
 
@@ -15,9 +14,7 @@ def signal_formatpeaks(info, desired_length, peak_indices=None, other_indices=No
     signals = {}
     for feature, values in info.items():
         # Get indices of features
-        if feature != "SCR_RecoveryTime" and any(
-            x in str(feature) for x in ["Peak", "Onset", "Offset", "Trough", "Recovery"]
-        ):
+        if feature != "SCR_RecoveryTime" and any(x in str(feature) for x in ["Peak", "Onset", "Offset", "Trough", "Recovery"]):
             signals[feature] = _signal_from_indices(values, desired_length, 1)
             signals[feature] = signals[feature].astype("int64")  # indexing of feature using 1 and 0
 
@@ -80,8 +77,7 @@ def _signal_from_indices(indices, desired_length=(), value=1):
     else:
         if len(value) != len(indices):
             raise ValueError(
-                "NeuroKit error: _signal_from_indices(): The number of values "
-                "is different from the number of indices."
+                "NeuroKit error: _signal_from_indices(): The number of values is different from the number of indices."
             )
         signal[indices] = value
 

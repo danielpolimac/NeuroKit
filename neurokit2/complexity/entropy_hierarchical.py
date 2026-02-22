@@ -8,9 +8,7 @@ from .entropy_sample import entropy_sample
 from .optim_complexity_tolerance import complexity_tolerance
 
 
-def entropy_hierarchical(
-    signal, scale="default", dimension=2, tolerance="sd", show=False, **kwargs
-):
+def entropy_hierarchical(signal, scale="default", dimension=2, tolerance="sd", show=False, **kwargs):
     """**Hierarchical Entropy (HEn)**
 
     Hierarchical Entropy (HEn) can be viewed as a generalization of the multiscale
@@ -73,9 +71,7 @@ def entropy_hierarchical(
     """
     # Sanity checks
     if isinstance(signal, (np.ndarray, pd.DataFrame)) and signal.ndim > 1:
-        raise ValueError(
-            "Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet."
-        )
+        raise ValueError("Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet.")
 
     # Get max scale
     if isinstance(scale, str):
@@ -105,9 +101,7 @@ def entropy_hierarchical(
     for T in range(len(Q)):
         Temp = Q[T, : int(N / (2 ** (int(np.log2(T + 1)))))]
         # This could be exposed to have different type of entropy estimators
-        HEns[T], _ = entropy_sample(
-            Temp, delay=1, dimension=dimension, tolerance=info["Tolerance"]
-        )
+        HEns[T], _ = entropy_sample(Temp, delay=1, dimension=dimension, tolerance=info["Tolerance"])
 
     Sn = np.zeros(scale)
     for t in range(scale):
@@ -120,7 +114,6 @@ def entropy_hierarchical(
     hen = _trapezoid(Sn[np.isfinite(Sn)]) / len(Sn[np.isfinite(Sn)])
 
     if show is True:
-
         # Color normalization values by extending beyond the range of the mean values
         colormin = np.min(Sn) - (np.max(Sn) - np.min(Sn)) * 0.1
         colormax = np.max(Sn) + (np.max(Sn) - np.min(Sn)) * 0.1
@@ -157,10 +150,7 @@ def entropy_hierarchical(
                 else:
                     x[k - 1] = x[P] - N / (2**Q)
 
-        Edges = (
-            np.vstack((np.repeat(np.arange(1, N), 2), np.arange(2, 2 * N))).transpose()
-            - 1
-        )
+        Edges = np.vstack((np.repeat(np.arange(1, N), 2), np.arange(2, 2 * N))).transpose() - 1
         labx = ["".join(k) for k in np.round(HEns, 3).astype(str)]
         ax2 = plt.subplot(G[3:, :])
         for k in range(len(x) - 1):
@@ -188,8 +178,7 @@ def _hierarchical_decomposition(signal, scale=3):
     N = int(2 ** np.floor(np.log2(len(signal))))
     if N / (2 ** (scale - 1)) < 8:
         raise Exception(
-            "Signal length is too short to estimate entropy at the lowest"
-            " subtree. Consider reducing the value of scale."
+            "Signal length is too short to estimate entropy at the lowest subtree. Consider reducing the value of scale."
         )
 
     Q = np.zeros(((2**scale) - 1, N))

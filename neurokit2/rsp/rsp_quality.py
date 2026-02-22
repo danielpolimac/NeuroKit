@@ -1,8 +1,7 @@
-# - * - coding: utf-8 - * -
-
 import scipy.signal
-from .rsp_peaks import rsp_peaks
+
 from ..signal.signal_quality import signal_quality
+from .rsp_peaks import rsp_peaks
 
 
 def rsp_quality(rsp_cleaned, peaks=None, sampling_rate=1000, method="templatematch"):
@@ -81,18 +80,14 @@ def rsp_quality(rsp_cleaned, peaks=None, sampling_rate=1000, method="templatemat
     elif method in ["dissimilarity", "sabeti2019"]:
         method = "dissimilarity"
     else:
-        raise ValueError(
-            f"Method '{method}' not recognised. Please use 'templatematch'."
-        )
+        raise ValueError(f"Method '{method}' not recognised. Please use 'templatematch'.")
 
     # Do method-specific pre-processing
     if method in ["templatematch"]:
-
         # Pre-process: Invert and detrend signal
         rsp_cleaned = -1 * scipy.signal.detrend(rsp_cleaned)
 
     if method in ["templatematch", "dissimilarity"]:
-
         # Detect RSP peaks (if not done already)
         if peaks is None:
             _, peaks = rsp_peaks(rsp_cleaned, sampling_rate=sampling_rate, method="bettermann1996")

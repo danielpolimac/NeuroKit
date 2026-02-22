@@ -2,6 +2,7 @@ import pickle
 
 import mne
 
+
 raw = mne.io.read_raw_fif(
     mne.datasets.sample.data_path() / "MEG/sample/sample_audvis_raw.fif",
     preload=True,

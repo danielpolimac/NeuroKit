@@ -1,6 +1,5 @@
-# - * - coding: utf-8 - * -
-from .rsp_peaks import rsp_peaks
 from ..signal import signal_cyclesegment
+from .rsp_peaks import rsp_peaks
 
 
 def rsp_segment(rsp_cleaned, peaks=None, sampling_rate=1000, show=False, **kwargs):
@@ -57,7 +56,7 @@ def rsp_segment(rsp_cleaned, peaks=None, sampling_rate=1000, show=False, **kwarg
     # if an axes object is requested
     if show == "return":
         return output
-    
+
     # else extract breaths
     breaths, _ = output
 

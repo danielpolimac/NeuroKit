@@ -1,11 +1,12 @@
-import warnings
-import numpy as np
-import time
-import pandas as pd
-import matplotlib.pyplot as plt
-import urllib.parse
-import requests
 import io
+import time
+import urllib.parse
+import warnings
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import requests
 
 
 def read_xdf(
@@ -169,25 +170,16 @@ def read_xdf(
 
     # Store metadata
     info = {
-        "sampling_rates_original": [
-            float(s["info"]["nominal_srate"][0]) for s in streams
-        ],
-        "sampling_rates_effective": [
-            float(s["info"]["effective_srate"]) for s in streams
-        ],
+        "sampling_rates_original": [float(s["info"]["nominal_srate"][0]) for s in streams],
+        "sampling_rates_effective": [float(s["info"]["effective_srate"]) for s in streams],
         "datetime": header["info"]["datetime"][0],
     }
 
     # Sanitize streams
-    stream_data = _sanitize_streams(
-        streams, timestamp_reset=timestamp_reset, mode=mode, verbose=verbose
-    )
+    stream_data = _sanitize_streams(streams, timestamp_reset=timestamp_reset, mode=mode, verbose=verbose)
 
     if not stream_data:
-        raise ValueError(
-            "No valid streams remain after sanitization. "
-            "Check that the file contains streams with timestamps."
-        )
+        raise ValueError("No valid streams remain after sanitization. Check that the file contains streams with timestamps.")
 
     # Resample and synchronize streams
     resampled_df, target_fs = _synchronize_streams(
@@ -207,9 +199,7 @@ def read_xdf(
     if isinstance(show, bool) and show is True:
         show = list(resampled_df.columns)
         if len(show) > 20:
-            warnings.warn(
-                f"Plotting all {len(show)} channels. The figure may be very tall."
-            )
+            warnings.warn(f"Plotting all {len(show)} channels. The figure may be very tall.")
 
     if show is not None and isinstance(show, list) and len(show) > 0:
         _visual_control(
@@ -260,10 +250,7 @@ def _visual_control(
 
     # Plot each requested channel on its subplot
     for ax, channel_name in zip(axes, show):
-        if (
-            channel_name not in original_data_map
-            or channel_name not in resampled_df.columns
-        ):
+        if channel_name not in original_data_map or channel_name not in resampled_df.columns:
             # Get a sorted list of available columns to help the user
             available_cols = sorted(list(resampled_df.columns))
 
@@ -302,9 +289,7 @@ def _visual_control(
     plt.show()
 
 
-def _visual_control_channel(
-    original, resampled, window_start=None, window_duration=2.0, ax=None
-):
+def _visual_control_channel(original, resampled, window_start=None, window_duration=2.0, ax=None):
     """
     Helper for plotting a window of original vs. resampled data.
     Modified for high-contrast visibility.
@@ -322,9 +307,7 @@ def _visual_control_channel(
 
     # Select the time window
     signal = original[(original.index >= window_start) & (original.index <= window_end)]
-    resampled_subset = resampled[
-        (resampled.index >= window_start) & (resampled.index <= window_end)
-    ]
+    resampled_subset = resampled[(resampled.index >= window_start) & (resampled.index <= window_end)]
 
     # --- PLOT 1: Resampled Data (The "Fit") ---
     # Bottom layer (zorder=1), Dark Green, thin continuous line
@@ -475,9 +458,7 @@ def _resample_streams(
     resampled_df = pd.DataFrame(data, index=new_ts, columns=cols, dtype=target_dtype)
 
     # Fill NaNs (e.g., at the beginning) and return
-    resampled_df = _fill_missing_data(resampled_df, fill_method, fill_value).astype(
-        target_dtype
-    )
+    resampled_df = _fill_missing_data(resampled_df, fill_method, fill_value).astype(target_dtype)
 
     return resampled_df
 
@@ -513,10 +494,7 @@ def _create_timestamps_anchored(stream_data, target_fs):
     except ValueError:
         # Fallback: No streams have > 1 sample.
         # Revert to the original "ignorant" grid behavior.
-        warnings.warn(
-            "Could not find a reference stream with > 1 sample. "
-            "Reverting to un-anchored grid."
-        )
+        warnings.warn("Could not find a reference stream with > 1 sample. Reverting to un-anchored grid.")
         anchor_ts = global_min_ts
 
     # 3. Calculate the new start time based on the anchor
@@ -656,9 +634,7 @@ def _mask_large_gaps(original_ts, new_ts, interpolated_data, max_gap):
     gap_indices = np.searchsorted(gap_starts, new_ts, side="right") - 1
     valid = gap_indices >= 0
     in_large_gap = np.zeros(len(new_ts), dtype=bool)
-    in_large_gap[valid] = (new_ts[valid] > gap_starts[gap_indices[valid]]) & (
-        new_ts[valid] < gap_ends[gap_indices[valid]]
-    )
+    in_large_gap[valid] = (new_ts[valid] > gap_starts[gap_indices[valid]]) & (new_ts[valid] < gap_ends[gap_indices[valid]])
     interpolated_data[in_large_gap, :] = np.nan
 
     return interpolated_data
@@ -686,9 +662,7 @@ def _interpolate_streams(
     """
 
     # 1. Create the empty (NaN-filled) data grid with correct dtype
-    resampled_data = np.full(
-        (len(new_timestamps), len(all_columns)), np.nan, dtype=dtype
-    )
+    resampled_data = np.full((len(new_timestamps), len(all_columns)), np.nan, dtype=dtype)
 
     # 2. Iterate over each *original* stream and interpolate
     for s in stream_data:
@@ -700,9 +674,7 @@ def _interpolate_streams(
         if len(original_ts) < 2:
             if len(original_ts) == 1:
                 # Nearest neighbor "splat" for single points
-                insertion_idx = np.searchsorted(
-                    new_timestamps, original_ts[0], side="left"
-                )
+                insertion_idx = np.searchsorted(new_timestamps, original_ts[0], side="left")
                 # Find closest valid index in new grid
                 left_idx = np.clip(insertion_idx - 1, 0, len(new_timestamps) - 1)
                 right_idx = np.clip(insertion_idx, 0, len(new_timestamps) - 1)
@@ -730,9 +702,7 @@ def _interpolate_streams(
         # --- Interpolation ---
         try:
             n_cols = original_data.shape[1]
-            interpolated_data_block = np.empty(
-                (len(new_timestamps), n_cols), dtype=dtype
-            )
+            interpolated_data_block = np.empty((len(new_timestamps), n_cols), dtype=dtype)
 
             if interp_kind == "previous":
                 # Zero-order hold (step) interpolation via searchsorted.
@@ -791,9 +761,7 @@ def _fill_missing_data(resampled_df, fill_method="ffill", fill_value=np.nan):
         resampled_df = resampled_df.bfill()
 
     # Fill any remaining NaNs (e.g., at the very beginning)
-    if fill_value is not None and not (
-        isinstance(fill_value, float) and np.isnan(fill_value)
-    ):
+    if fill_value is not None and not (isinstance(fill_value, float) and np.isnan(fill_value)):
         resampled_df = resampled_df.fillna(fill_value)
 
     return resampled_df
@@ -842,9 +810,7 @@ def _sanitize_streams(streams, timestamp_reset=True, mode="precise", verbose=Tru
         return []
 
     # If reset is requested, offset is the min_ts. Otherwise, offset is 0.
-    timestamp_offset = (
-        min([min(s["time_stamps"]) for s in streams]) if timestamp_reset else 0.0
-    )
+    timestamp_offset = min([min(s["time_stamps"]) for s in streams]) if timestamp_reset else 0.0
 
     # Check for duration mismatches
     ts_mins = np.array([stream["time_stamps"].min() for stream in streams])
@@ -852,9 +818,7 @@ def _sanitize_streams(streams, timestamp_reset=True, mode="precise", verbose=Tru
     ts_durations = ts_maxs - ts_mins
     duration_diffs = np.abs(ts_durations[:, np.newaxis] - ts_durations[np.newaxis, :])
     if np.any(duration_diffs > 7200):  # 2 hours
-        warnings.warn(
-            "Some streams differ in duration by more than 2 hours. This might be indicative of an issue."
-        )
+        warnings.warn("Some streams differ in duration by more than 2 hours. This might be indicative of an issue.")
 
     # --- Convert to common format (list of dicts) ---
     stream_data = []
@@ -864,12 +828,8 @@ def _sanitize_streams(streams, timestamp_reset=True, mode="precise", verbose=Tru
             channels_info = stream["info"]["desc"][0]["channels"][0]["channel"]
             cols = [channels_info[i]["label"][0] for i in range(len(channels_info))]
         except (KeyError, TypeError, IndexError):
-            cols = [
-                f"CHANNEL_{i}" for i in range(np.array(stream["time_series"]).shape[1])
-            ]
-            warnings.warn(
-                f"Using default channel names for stream: {stream['info'].get('name', ['Unnamed'])[0]}"
-            )
+            cols = [f"CHANNEL_{i}" for i in range(np.array(stream["time_series"]).shape[1])]
+            warnings.warn(f"Using default channel names for stream: {stream['info'].get('name', ['Unnamed'])[0]}")
 
         name = stream["info"].get("name", ["Unnamed"])[0]
         timestamps = stream["time_stamps"] - timestamp_offset  # Offset applied here
@@ -918,12 +878,8 @@ def _sanitize_streams(streams, timestamp_reset=True, mode="precise", verbose=Tru
 
                     # Print mapping
                     if verbose:
-                        col_name = (
-                            cols[col_idx] if col_idx < len(cols) else f"Idx_{col_idx}"
-                        )
-                        print(
-                            f"\n[Categorical Map] Stream: '{name}' | Channel: '{col_name}'"
-                        )
+                        col_name = cols[col_idx] if col_idx < len(cols) else f"Idx_{col_idx}"
+                        print(f"\n[Categorical Map] Stream: '{name}' | Channel: '{col_name}'")
                         print("-" * 50)
                         for label, val in string_to_int_map.items():
                             print(f"  '{label}' -> {val}")
@@ -936,24 +892,16 @@ def _sanitize_streams(streams, timestamp_reset=True, mode="precise", verbose=Tru
             data = np.stack(processed_cols, axis=1)
 
         if data.shape[0] != len(timestamps):
-            warnings.warn(
-                f"Data shape mismatch for stream {name} after unique check. Skipping."
-            )
+            warnings.warn(f"Data shape mismatch for stream {name} after unique check. Skipping.")
             continue
 
         # --- Sanity checks for sampling rates ---
         nominal_srate = float(stream["info"]["nominal_srate"][0])
-        effective_srate = (
-            len(timestamps) / (timestamps[-1] - timestamps[0])
-            if len(timestamps) > 1
-            else 0
-        )
+        effective_srate = len(timestamps) / (timestamps[-1] - timestamps[0]) if len(timestamps) > 1 else 0
 
         # Tolerance check
         tol = 0.05 * nominal_srate
-        if nominal_srate > 0 and not (
-            nominal_srate - tol <= effective_srate <= nominal_srate + tol
-        ):
+        if nominal_srate > 0 and not (nominal_srate - tol <= effective_srate <= nominal_srate + tol):
             warnings.warn(
                 f"Stream '{name}': effective sampling rate ({effective_srate:.2f} Hz) "
                 f"deviates more than 5% from the nominal rate ({nominal_srate:.2f} Hz). "
@@ -977,9 +925,7 @@ def _sanitize_streams(streams, timestamp_reset=True, mode="precise", verbose=Tru
     duplicate_cols = set([col for col in all_cols if all_cols.count(col) > 1])
 
     if duplicate_cols:
-        warnings.warn(
-            f"Duplicate column names found: {duplicate_cols}. Prefixing with stream names."
-        )
+        warnings.warn(f"Duplicate column names found: {duplicate_cols}. Prefixing with stream names.")
         for s in stream_data:
             if any(col in duplicate_cols for col in s["columns"]):
                 s["columns"] = [f"{s['name']}_{col}" for col in s["columns"]]
@@ -1002,8 +948,7 @@ def _load_xdf(
         import pyxdf
     except ImportError as e:
         raise ImportError(
-            "The 'pyxdf' module is required for this function to run. "
-            "Please install it first (`pip install pyxdf`)."
+            "The 'pyxdf' module is required for this function to run. Please install it first (`pip install pyxdf`)."
         ) from e
 
     # Check if filename is a URL string
@@ -1018,7 +963,7 @@ def _load_xdf(
             req.raise_for_status()  # Raise error for bad responses (404, 500)
             filename = io.BytesIO(req.content)  # Convert to file-like object
         except requests.exceptions.RequestException as e:
-            raise IOError(f"Failed to read XDF file from URL: {filename}") from e
+            raise OSError(f"Failed to read XDF file from URL: {filename}") from e
 
     # Helper to safely rewind if it's a file-like object (BytesIO)
     def _rewind(f):
@@ -1064,9 +1009,7 @@ def _load_xdf(
     # 3. Optimization Check
     # If no streams matched the user's criteria, return the raw data immediately.
     if not indices_to_process:
-        warnings.warn(
-            "No matching streams found for dejittering. Make sure you typed the correct name. Returning raw data."
-        )
+        warnings.warn("No matching streams found for dejittering. Make sure you typed the correct name. Returning raw data.")
         return streams, header
 
     # 4. Load the "Clean" data (Dejitter ON)

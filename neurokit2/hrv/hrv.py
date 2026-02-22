@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 import matplotlib.gridspec as gs
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from ..stats import summary_plot
 from .hrv_frequency import _hrv_frequency_show, hrv_frequency
-from .hrv_nonlinear import _hrv_nonlinear_show, hrv_nonlinear, hrv_symbolic
+from .hrv_nonlinear import _hrv_nonlinear_show, hrv_nonlinear
 from .hrv_rsa import hrv_rsa
 from .hrv_time import hrv_time
 from .hrv_utils import _hrv_format_input
@@ -131,7 +130,6 @@ def hrv(peaks, sampling_rate=1000, show=False, **kwargs):
 # Plot
 # =============================================================================
 def _hrv_plot(peaks, out, sampling_rate=1000, interpolation_rate=100, **kwargs):
-
     fig = plt.figure(constrained_layout=False)
     spec = gs.GridSpec(ncols=2, nrows=2, height_ratios=[1, 1], width_ratios=[1, 1])
 
@@ -142,9 +140,7 @@ def _hrv_plot(peaks, out, sampling_rate=1000, interpolation_rate=100, **kwargs):
 
     ax_psd = fig.add_subplot(spec[1, :-1])
 
-    spec_within = gs.GridSpecFromSubplotSpec(
-        4, 4, subplot_spec=spec[:, -1], wspace=0.025, hspace=0.05
-    )
+    spec_within = gs.GridSpecFromSubplotSpec(4, 4, subplot_spec=spec[:, -1], wspace=0.025, hspace=0.05)
     ax_poincare = fig.add_subplot(spec_within[1:4, 0:3])
     ax_marg_x = fig.add_subplot(spec_within[0, 0:3])
     ax_marg_x.set_title("Poincaré Plot")
@@ -170,11 +166,7 @@ def _hrv_plot(peaks, out, sampling_rate=1000, interpolation_rate=100, **kwargs):
 
     # PSD plot
     rri, rri_time, sampling_rate = intervals_process(
-        rri,
-        intervals_time=rri_time,
-        interpolate=True,
-        interpolation_rate=interpolation_rate,
-        **kwargs
+        rri, intervals_time=rri_time, interpolate=True, interpolation_rate=interpolation_rate, **kwargs
     )
 
     frequency_bands = out[["ULF", "VLF", "LF", "HF", "VHF"]]

@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
 import json
 import os
+import pathlib
 import pickle
 import urllib
-import pathlib
 
 import numpy as np
 import pandas as pd
-
 from sklearn import datasets as sklearn_datasets
 
 
@@ -228,7 +226,6 @@ def data(dataset="bio_eventrelated_100hz"):
 
     # TODO: Add more EEG (fif and edf datasets)
     if dataset in ["eeg_1min_200hz"]:
-
         try:
             import mne  # pylint: disable=unused-import # noqa: F401
         except ImportError:
@@ -240,7 +237,6 @@ def data(dataset="bio_eventrelated_100hz"):
 
         url = "https://github.com/neuropsychology/NeuroKit/blob/dev/data/eeg_1min_200hz.pickle?raw=true"
         with urllib.request.urlopen(url) as response:
-
             # handle if system is posix (Windows paths are used in the pickle)
             if os.name == "posix":
                 windows_backup = pathlib.WindowsPath
@@ -250,11 +246,7 @@ def data(dataset="bio_eventrelated_100hz"):
             else:
                 raw = pickle.load(response)
 
-        if (
-            hasattr(raw.info, "proj_id")
-            and isinstance(raw.info.proj_id, np.ndarray)
-            and raw.info.proj_id.size == 1
-        ):
+        if hasattr(raw.info, "proj_id") and isinstance(raw.info.proj_id, np.ndarray) and raw.info.proj_id.size == 1:
             raw.info["proj_id"] = int(raw.info.proj_id[0])
         elif not hasattr(raw.info, "proj_id") or not isinstance(raw.info.proj_id, int):
             raw.info.proj_id = None
@@ -264,9 +256,8 @@ def data(dataset="bio_eventrelated_100hz"):
     file, ext = os.path.splitext(dataset)  # pylint: disable=unused-variable
     if ext == "":
         df = pd.read_csv(path + dataset + ".csv")
+    elif "https" not in dataset:
+        df = pd.read_csv(path + dataset)
     else:
-        if "https" not in dataset:
-            df = pd.read_csv(path + dataset)
-        else:
-            df = pd.read_csv(dataset)
+        df = pd.read_csv(dataset)
     return df

@@ -8,12 +8,8 @@ from neurokit2.hrv.hrv_nonlinear import _hrv_symbolic_classify
 
 
 def test_hrv_time():
-    ecg_slow = nk.ecg_simulate(
-        duration=60, sampling_rate=1000, heart_rate=60, random_state=42
-    )
-    ecg_fast = nk.ecg_simulate(
-        duration=60, sampling_rate=1000, heart_rate=150, random_state=42
-    )
+    ecg_slow = nk.ecg_simulate(duration=60, sampling_rate=1000, heart_rate=60, random_state=42)
+    ecg_fast = nk.ecg_simulate(duration=60, sampling_rate=1000, heart_rate=150, random_state=42)
 
     _, peaks_slow = nk.ecg_process(ecg_slow, sampling_rate=1000)
     _, peaks_fast = nk.ecg_process(ecg_fast, sampling_rate=1000)
@@ -37,9 +33,7 @@ def test_hrv_time():
 
 def test_hrv_frequency():
     # Test frequency domain
-    ecg1 = nk.ecg_simulate(
-        duration=60, sampling_rate=2000, heart_rate=70, random_state=42
-    )
+    ecg1 = nk.ecg_simulate(duration=60, sampling_rate=2000, heart_rate=70, random_state=42)
     _, peaks1 = nk.ecg_process(ecg1, sampling_rate=2000)
     hrv1 = nk.hrv_frequency(peaks1, sampling_rate=2000)
 
@@ -55,10 +49,7 @@ def test_hrv_frequency():
 
 
 def test_hrv():
-
-    ecg = nk.ecg_simulate(
-        duration=120, sampling_rate=1000, heart_rate=110, random_state=42
-    )
+    ecg = nk.ecg_simulate(duration=120, sampling_rate=1000, heart_rate=110, random_state=42)
 
     _, peaks = nk.ecg_process(ecg, sampling_rate=1000)
 
@@ -68,10 +59,7 @@ def test_hrv():
 
 
 def test_rri_input_hrv():
-
-    ecg = nk.ecg_simulate(
-        duration=120, sampling_rate=1000, heart_rate=110, random_state=42
-    )
+    ecg = nk.ecg_simulate(duration=120, sampling_rate=1000, heart_rate=110, random_state=42)
 
     _, peaks = nk.ecg_process(ecg, sampling_rate=1000)
     peaks = peaks["ECG_R_Peaks"]
@@ -87,10 +75,7 @@ def test_rri_input_hrv():
 
 @pytest.mark.parametrize("detrend", ["polynomial", "loess"])
 def test_hrv_detrended_rri(detrend):
-
-    ecg = nk.ecg_simulate(
-        duration=120, sampling_rate=1000, heart_rate=110, random_state=42
-    )
+    ecg = nk.ecg_simulate(duration=120, sampling_rate=1000, heart_rate=110, random_state=42)
 
     _, peaks = nk.ecg_process(ecg, sampling_rate=1000)
     peaks = peaks["ECG_R_Peaks"]
@@ -116,10 +101,7 @@ def test_hrv_detrended_rri(detrend):
 
 @pytest.mark.parametrize("interpolation_rate", ["from_mean_rri", 1, 4, 10])
 def test_hrv_interpolated_rri(interpolation_rate):
-
-    ecg = nk.ecg_simulate(
-        duration=120, sampling_rate=1000, heart_rate=110, random_state=42
-    )
+    ecg = nk.ecg_simulate(duration=120, sampling_rate=1000, heart_rate=110, random_state=42)
 
     _, peaks = nk.ecg_process(ecg, sampling_rate=1000)
     peaks = peaks["ECG_R_Peaks"]
@@ -162,9 +144,7 @@ def test_hrv_missing():
     # remove some intervals and their corresponding timestamps
     missing = rng.choice(len(rri), size=int(len(rri) / 5))
     rri_missing = rri[np.array([i for i in range(len(rri)) if i not in missing])]
-    rri_time_missing = rri_time[
-        np.array([i for i in range(len(rri_time)) if i not in missing])
-    ]
+    rri_time_missing = rri_time[np.array([i for i in range(len(rri_time)) if i not in missing])]
 
     orig_hrv = nk.hrv_time(peaks, sampling_rate=sampling_rate)
     miss_only_rri_hrv = nk.hrv_time({"RRI": rri_missing})
@@ -214,9 +194,7 @@ def test_hrv_rsa():
         "RSA_Gates_SD",
     ]
 
-    rsa_features = nk.hrv_rsa(
-        ecg_signals, rsp_signals, rpeaks=info, sampling_rate=100, continuous=False
-    )
+    rsa_features = nk.hrv_rsa(ecg_signals, rsp_signals, rpeaks=info, sampling_rate=100, continuous=False)
 
     assert all(key in rsa_feature_columns for key in rsa_features.keys())
 
@@ -224,9 +202,7 @@ def test_hrv_rsa():
     with pytest.warns(misc.NeuroKitWarning, match=r"RSP signal not found. For this.*"):
         nk.hrv_rsa(ecg_signals, rpeaks=info, sampling_rate=100, continuous=False)
 
-    with pytest.warns(
-        misc.NeuroKitWarning, match=r"RSP signal not found. For this time.*"
-    ):
+    with pytest.warns(misc.NeuroKitWarning, match=r"RSP signal not found. For this time.*"):
         nk.hrv_rsa(
             ecg_signals,
             pd.DataFrame(),
@@ -236,13 +212,9 @@ def test_hrv_rsa():
         )
 
     # Test missing rsp onsets/centers
-    with pytest.warns(
-        misc.NeuroKitWarning, match=r"Couldn't find rsp cycles onsets and centers.*"
-    ):
+    with pytest.warns(misc.NeuroKitWarning, match=r"Couldn't find rsp cycles onsets and centers.*"):
         rsp_signals["RSP_Peaks"] = 0
-        _ = nk.hrv_rsa(
-            ecg_signals, rsp_signals, rpeaks=info, sampling_rate=100, continuous=False
-        )
+        _ = nk.hrv_rsa(ecg_signals, rsp_signals, rpeaks=info, sampling_rate=100, continuous=False)
 
 
 def test_hrv_nonlinear_fragmentation():
@@ -298,9 +270,7 @@ def test_hrv_symbolic_classify():
 
 def test_hrv_symbolic():
     """Integration test: correct columns, values in [0,1], each family group sums to 1."""
-    ecg = nk.ecg_simulate(
-        duration=60, sampling_rate=250, heart_rate=70, random_state=42
-    )
+    ecg = nk.ecg_simulate(duration=60, sampling_rate=250, heart_rate=70, random_state=42)
     _, peaks = nk.ecg_process(ecg, sampling_rate=250)
     peaks = peaks["ECG_R_Peaks"]
 
@@ -320,6 +290,4 @@ def test_hrv_symbolic():
     # Each group of 4 families (0V+1V+2LV+2UV) must sum to ~1.0
     for start in range(0, len(values), 4):
         group_sum = values[start : start + 4].sum()
-        assert np.isclose(
-            group_sum, 1.0, atol=1e-9
-        ), f"Family group at col {start} sums to {group_sum}"
+        assert np.isclose(group_sum, 1.0, atol=1e-9), f"Family group at col {start} sums to {group_sum}"

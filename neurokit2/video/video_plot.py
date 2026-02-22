@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -72,7 +71,6 @@ def video_plot(video, sampling_rate=30, frames=3, signals=None):
 
     if signals is not None:
         for j, signal in enumerate(signals):
-
             # Make sure the size is correct
             if len(signal) != length:
                 signal = signal_resample(signal, desired_length=desired_length)
