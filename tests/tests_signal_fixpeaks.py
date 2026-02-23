@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import numpy.random
 import pytest
@@ -73,9 +71,7 @@ def peaks_missed(peaks_correct, artifact_idcs):
 
 @pytest.fixture
 def peaks_extra(peaks_correct, artifact_idcs):
-    extra_peaks = (
-        peaks_correct[artifact_idcs + 1] - peaks_correct[artifact_idcs]
-    ) / 15 + peaks_correct[artifact_idcs]
+    extra_peaks = (peaks_correct[artifact_idcs + 1] - peaks_correct[artifact_idcs]) / 15 + peaks_correct[artifact_idcs]
 
     peaks_extra = peaks_correct.copy()
     peaks_extra = np.insert(peaks_extra, artifact_idcs, extra_peaks)
@@ -140,17 +136,13 @@ def test_misaligned_correction(peaks_misaligned, artifacts_misaligned):
 def test_missed_correction(peaks_missed, artifacts_missed):
     peaks_corrected = _correct_artifacts(artifacts_missed, peaks_missed)
 
-    assert np.unique(peaks_corrected).size == (
-        peaks_missed.size + len(artifacts_missed["missed"])
-    )
+    assert np.unique(peaks_corrected).size == (peaks_missed.size + len(artifacts_missed["missed"]))
 
 
 def test_extra_correction(peaks_extra, artifacts_extra):
     peaks_corrected = _correct_artifacts(artifacts_extra, peaks_extra)
 
-    assert np.unique(peaks_corrected).size == (
-        peaks_extra.size - len(artifacts_extra["extra"])
-    )
+    assert np.unique(peaks_corrected).size == (peaks_extra.size - len(artifacts_extra["extra"]))
 
 
 def idfn(val):
@@ -171,12 +163,8 @@ def idfn(val):
     indirect=["peaks_misaligned"],
     ids=idfn,
 )
-def test_misaligned_correction_wrapper(
-    peaks_correct, peaks_misaligned, iterative, rmssd_diff
-):
-    _, peaks_corrected = signal_fixpeaks(
-        peaks_misaligned, sampling_rate=1, iterative=iterative
-    )
+def test_misaligned_correction_wrapper(peaks_correct, peaks_misaligned, iterative, rmssd_diff):
+    _, peaks_corrected = signal_fixpeaks(peaks_misaligned, sampling_rate=1, iterative=iterative)
 
     rmssd_correct = compute_rmssd(peaks_correct)
     rmssd_corrected = compute_rmssd(peaks_corrected)
@@ -197,9 +185,7 @@ def test_misaligned_correction_wrapper(
 
 @pytest.mark.parametrize("iterative, rmssd_diff", [(True, 3), (False, 3)], ids=idfn)
 def test_extra_correction_wrapper(peaks_correct, peaks_extra, iterative, rmssd_diff):
-    _, peaks_corrected = signal_fixpeaks(
-        peaks_extra, sampling_rate=1, iterative=iterative
-    )
+    _, peaks_corrected = signal_fixpeaks(peaks_extra, sampling_rate=1, iterative=iterative)
 
     rmssd_correct = compute_rmssd(peaks_correct)
     rmssd_corrected = compute_rmssd(peaks_corrected)
@@ -221,9 +207,7 @@ def test_extra_correction_wrapper(peaks_correct, peaks_extra, iterative, rmssd_d
 
 @pytest.mark.parametrize("iterative, rmssd_diff", [(True, 13), (False, 13)], ids=idfn)
 def test_missed_correction_wrapper(peaks_correct, peaks_missed, iterative, rmssd_diff):
-    _, peaks_corrected = signal_fixpeaks(
-        peaks_missed, sampling_rate=1, iterative=iterative
-    )
+    _, peaks_corrected = signal_fixpeaks(peaks_missed, sampling_rate=1, iterative=iterative)
 
     rmssd_correct = compute_rmssd(peaks_correct)
     rmssd_corrected = compute_rmssd(peaks_corrected)
@@ -254,9 +238,7 @@ def testpeaks_for_neurokit_method():
 
 
 @pytest.mark.parametrize("interval_max", [None, 1.5, 2.0])
-def test_neurokit_method_returns_only_positive_indices(
-    testpeaks_for_neurokit_method, interval_max
-):
+def test_neurokit_method_returns_only_positive_indices(testpeaks_for_neurokit_method, interval_max):
     _, peaks_corrected = nk.signal_fixpeaks(
         peaks=testpeaks_for_neurokit_method,
         interval_min=0.5,
@@ -267,9 +249,7 @@ def test_neurokit_method_returns_only_positive_indices(
 
 
 @pytest.mark.parametrize("interval_max", [None, 1.5, 2.0])
-def test_neurokit_method_returns_no_duplicates(
-    testpeaks_for_neurokit_method, interval_max
-):
+def test_neurokit_method_returns_no_duplicates(testpeaks_for_neurokit_method, interval_max):
     _, peaks_corrected = nk.signal_fixpeaks(
         peaks=testpeaks_for_neurokit_method,
         interval_min=0.5,
@@ -280,9 +260,7 @@ def test_neurokit_method_returns_no_duplicates(
 
 
 @pytest.mark.parametrize("interval_max", [None, 1.5, 2.0])
-def test_neurokit_method_returns_strictly_increasing_indices(
-    testpeaks_for_neurokit_method, interval_max
-):
+def test_neurokit_method_returns_strictly_increasing_indices(testpeaks_for_neurokit_method, interval_max):
     _, peaks_corrected = nk.signal_fixpeaks(
         peaks=testpeaks_for_neurokit_method,
         interval_min=0.5,

@@ -5,11 +5,11 @@ import nolds
 import numpy as np
 import pandas as pd
 import sklearn.neighbors
-from packaging import version
 from pyentrp import entropy as pyentrp
 
 # import EntropyHub
 import neurokit2 as nk
+
 
 # For the testing of complexity, we test our implementations against existing and established ones.
 # However, some of these other implementations are not really packaged in a way
@@ -40,9 +40,7 @@ def test_complexity_sanity():
     # TODO: why this gives 70 or 71 depending on the machine????
     # assert parameters["Fluctuations"].shape == (70, len(mdfa_q))
 
-    assert np.allclose(
-        nk.fractal_correlation(signal)[0], 0.7382138350901658, atol=0.000001
-    )
+    assert np.allclose(nk.fractal_correlation(signal)[0], 0.7382138350901658, atol=0.000001)
     assert np.allclose(
         nk.fractal_correlation(signal, radius="nolds")[0],
         nolds.corr_dim(signal, 2),
@@ -84,9 +82,9 @@ def test_complexity_sanity():
 
 
 def test_complexity_vs_R():
-    signal = pd.read_csv(
-        "https://raw.githubusercontent.com/neuropsychology/NeuroKit/master/data/bio_eventrelated_100hz.csv"
-    )["RSP"].values
+    signal = pd.read_csv("https://raw.githubusercontent.com/neuropsychology/NeuroKit/master/data/bio_eventrelated_100hz.csv")[
+        "RSP"
+    ].values
     r = 0.2 * np.std(signal, ddof=1)
 
     # ApEn
@@ -101,9 +99,7 @@ def test_complexity_vs_R():
     sampen = nk.entropy_sample(signal[0:300], dimension=2, tolerance=r)[0]
     assert np.allclose(
         sampen,
-        nk.entropy_sample(signal[0:300], dimension=2, tolerance=r, distance="infinity")[
-            0
-        ],
+        nk.entropy_sample(signal[0:300], dimension=2, tolerance=r, distance="infinity")[0],
         atol=0.001,
     )
     assert np.allclose(sampen, 0.03784376, atol=0.001)
@@ -138,9 +134,7 @@ def test_complexity_vs_Python():
         entropy_app_entropy(signal, 2),
     )
 
-    assert nk.entropy_approximate(signal, dimension=2, tolerance=tolerance)[
-        0
-    ] != pyeeg_ap_entropy(signal, 2, tolerance)
+    assert nk.entropy_approximate(signal, dimension=2, tolerance=tolerance)[0] != pyeeg_ap_entropy(signal, 2, tolerance)
 
     # Sample
     assert np.allclose(
@@ -167,14 +161,9 @@ def test_complexity_vs_Python():
     #    import sampen
     #    sampen.sampen2(signal[0:300], mm=2, r=r)
 
+    assert nk.entropy_sample(signal, dimension=2, tolerance=0.2)[0] != pyentrp.sample_entropy(signal, 2, 0.2)[1]
     assert (
-        nk.entropy_sample(signal, dimension=2, tolerance=0.2)[0]
-        != pyentrp.sample_entropy(signal, 2, 0.2)[1]
-    )
-    assert (
-        nk.entropy_sample(signal, dimension=2, tolerance=0.2 * np.sqrt(np.var(signal)))[
-            0
-        ]
+        nk.entropy_sample(signal, dimension=2, tolerance=0.2 * np.sqrt(np.var(signal)))[0]
         != MultiscaleEntropy_sample_entropy(signal, 2, 0.2)[0.2][2]
     )
 
@@ -186,8 +175,7 @@ def test_complexity_vs_Python():
 
     # Fuzzy
     assert np.allclose(
-        nk.entropy_fuzzy(signal, dimension=2, tolerance=0.2, delay=1)[0]
-        - entro_py_fuzzyen(signal, 2, 0.2, 1, scale=False),
+        nk.entropy_fuzzy(signal, dimension=2, tolerance=0.2, delay=1)[0] - entro_py_fuzzyen(signal, 2, 0.2, 1, scale=False),
         0,
     )
 
@@ -268,9 +256,7 @@ def pyeeg_embed_seq(time_series, tau, embedding_dimension):
 
     strides = (typed_time_series.itemsize, tau * typed_time_series.itemsize)
 
-    return np.lib.stride_tricks.as_strided(
-        typed_time_series, shape=shape, strides=strides
-    )
+    return np.lib.stride_tricks.as_strided(typed_time_series, shape=shape, strides=strides)
 
 
 def pyeeg_bin_power(X, Band, Fs):
@@ -280,13 +266,7 @@ def pyeeg_bin_power(X, Band, Fs):
     for Freq_Index in range(0, len(Band) - 1):
         Freq = float(Band[Freq_Index])
         Next_Freq = float(Band[Freq_Index + 1])
-        Power[Freq_Index] = sum(
-            C[
-                int(np.floor(Freq / Fs * len(X))) : int(
-                    np.floor(Next_Freq / Fs * len(X))
-                )
-            ]
-        )
+        Power[Freq_Index] = sum(C[int(np.floor(Freq / Fs * len(X))) : int(np.floor(Next_Freq / Fs * len(X)))])
     Power_Ratio = Power / sum(Power)
     return Power, Power_Ratio
 
@@ -366,18 +346,10 @@ def entropy_app_samp_entropy(x, order, metric="chebyshev", approximate=True):
         emb_data1 = _emb_data1
     else:
         emb_data1 = _emb_data1[:-1]
-    count1 = (
-        sklearn.neighbors.KDTree(emb_data1, metric=metric)
-        .query_radius(emb_data1, r, count_only=True)
-        .astype(np.float64)
-    )
+    count1 = sklearn.neighbors.KDTree(emb_data1, metric=metric).query_radius(emb_data1, r, count_only=True).astype(np.float64)
     # compute phi(order + 1, r)
     emb_data2 = entropy_embed(x, order + 1, 1)
-    count2 = (
-        sklearn.neighbors.KDTree(emb_data2, metric=metric)
-        .query_radius(emb_data2, r, count_only=True)
-        .astype(np.float64)
-    )
+    count2 = sklearn.neighbors.KDTree(emb_data2, metric=metric).query_radius(emb_data2, r, count_only=True).astype(np.float64)
     if approximate:
         phi[0] = np.mean(np.log(count1 / emb_data1.shape[0]))
         phi[1] = np.mean(np.log(count2 / emb_data2.shape[0]))
@@ -521,25 +493,13 @@ def MultiscaleEntropy_check_type(x, num_type, name):
     if isinstance(x, num_type):
         tmp = [x]
     elif not isinstance(x, Iterable):
-        raise ValueError(
-            name
-            + " should be a "
-            + num_type.__name__
-            + " or an iterator of "
-            + num_type.__name__
-        )
+        raise ValueError(name + " should be a " + num_type.__name__ + " or an iterator of " + num_type.__name__)
     else:
         tmp = []
         for i in x:
             tmp.append(i)
             if not isinstance(i, num_type):
-                raise ValueError(
-                    name
-                    + " should be a "
-                    + num_type.__name__
-                    + " or an iterator of "
-                    + num_type.__name__
-                )
+                raise ValueError(name + " should be a " + num_type.__name__ + " or an iterator of " + num_type.__name__)
     return tmp
 
 
@@ -559,9 +519,7 @@ def MultiscaleEntropy_coarse_grain(x, scale_factor):
     return ans
 
 
-def MultiscaleEntropy_sample_entropy(
-    x, m=[2], r=[0.15], sd=None, return_type="dict", safe_mode=False
-):
+def MultiscaleEntropy_sample_entropy(x, m=[2], r=[0.15], sd=None, return_type="dict", safe_mode=False):
     """[Sample Entropy, the threshold will be r*sd]
 
     Arguments:
@@ -586,7 +544,7 @@ def MultiscaleEntropy_sample_entropy(
     if not safe_mode:
         m = MultiscaleEntropy_check_type(m, int, "m")
         r = MultiscaleEntropy_check_type(r, float, "r")
-        if not (sd is None) and not isinstance(sd, (float, int)):
+        if sd is not None and not isinstance(sd, (float, int)):
             raise ValueError("sd should be a number")
     try:
         x = np.array(x)

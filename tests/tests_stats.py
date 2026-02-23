@@ -10,7 +10,6 @@ import neurokit2 as nk
 
 
 def test_standardize():
-
     rez = np.sum(nk.standardize([1, 1, 5, 2, 1]))
     assert np.allclose(rez, 0, atol=0.0001)
 
@@ -25,14 +24,12 @@ def test_standardize():
 
 
 def test_fit_loess():
-
     signal = np.cos(np.linspace(start=0, stop=10, num=1000))
     fit, _ = nk.fit_loess(signal, alpha=0.75)
     assert np.allclose(np.mean(signal - fit), -0.0201905899, atol=0.0001)
 
 
 def test_mad():
-
     simple_case = [0] * 10
     assert nk.mad(simple_case) == 0
 
@@ -45,7 +42,6 @@ def test_mad():
 
 
 def create_sample_cluster_data(random_state):
-
     rng = nk.misc.check_random_state(random_state)
 
     # generate simple sample data
@@ -70,7 +66,6 @@ def create_sample_cluster_data(random_state):
 
 
 def test_kmedoids():
-
     # set random state for reproducible results
     random_state_data = 33
     random_state_clustering = 77
@@ -87,7 +82,6 @@ def test_kmedoids():
 
 
 def test_kmeans():
-
     # set random state for reproducible results
     random_state_data = 54
     random_state_clustering = 76
@@ -104,7 +98,6 @@ def test_kmeans():
 
 
 def test_cor():
-
     # pearson
     wiki_example_x = np.array([1, 2, 3, 5, 8])
     wiki_example_y = np.array([0.11, 0.12, 0.13, 0.15, 0.18])

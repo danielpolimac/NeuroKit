@@ -6,6 +6,7 @@ import pandas as pd
 
 import neurokit2 as nk
 
+
 # =============================================================================
 # Parameters
 # =============================================================================
@@ -63,7 +64,6 @@ def optimize_tolerance(raw, channel="Fp1"):
     signal = nk.standardize(signal)
     out = pd.DataFrame()
     for method in ["maxApEn", "recurrence"]:
-
         r, info = nk.complexity_tolerance(
             signal,
             delay=np.round(27 / (1000 / raw.info["sfreq"]), 0).astype(int),
@@ -144,9 +144,7 @@ def compute_complexity(raw, channel="Fp1"):
 
     rez = pd.DataFrame({"Channel": [channel]})
     rez["SFD"], _ = nk.fractal_sevcik(signal)  # Change ShanEn D by SFD
-    rez["MSWPEn"], _ = nk.entropy_multiscale(
-        signal, scale="default", dimension=m, tolerance=r, method="MSWPEn"
-    )
+    rez["MSWPEn"], _ = nk.entropy_multiscale(signal, scale="default", dimension=m, tolerance=r, method="MSWPEn")
     rez["CWPEn"], _ = nk.entropy_permutation(
         signal,
         delay=delay,

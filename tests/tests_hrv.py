@@ -4,6 +4,7 @@ import pytest
 
 import neurokit2 as nk
 from neurokit2 import misc
+from neurokit2.hrv.hrv_nonlinear import _hrv_symbolic_classify
 
 
 def test_hrv_time():
@@ -48,7 +49,6 @@ def test_hrv_frequency():
 
 
 def test_hrv():
-
     ecg = nk.ecg_simulate(duration=120, sampling_rate=1000, heart_rate=110, random_state=42)
 
     _, peaks = nk.ecg_process(ecg, sampling_rate=1000)
@@ -59,7 +59,6 @@ def test_hrv():
 
 
 def test_rri_input_hrv():
-
     ecg = nk.ecg_simulate(duration=120, sampling_rate=1000, heart_rate=110, random_state=42)
 
     _, peaks = nk.ecg_process(ecg, sampling_rate=1000)
@@ -76,7 +75,6 @@ def test_rri_input_hrv():
 
 @pytest.mark.parametrize("detrend", ["polynomial", "loess"])
 def test_hrv_detrended_rri(detrend):
-
     ecg = nk.ecg_simulate(duration=120, sampling_rate=1000, heart_rate=110, random_state=42)
 
     _, peaks = nk.ecg_process(ecg, sampling_rate=1000)
@@ -85,7 +83,11 @@ def test_hrv_detrended_rri(detrend):
     rri_time = peaks[1:] / 1000
 
     rri_processed, rri_processed_time, _ = nk.intervals_process(
-        rri, intervals_time=rri_time, interpolate=False, interpolation_rate=None, detrend=detrend
+        rri,
+        intervals_time=rri_time,
+        interpolate=False,
+        interpolation_rate=None,
+        detrend=detrend,
     )
 
     ecg_hrv = nk.hrv({"RRI": rri_processed, "RRI_Time": rri_processed_time})
@@ -99,7 +101,6 @@ def test_hrv_detrended_rri(detrend):
 
 @pytest.mark.parametrize("interpolation_rate", ["from_mean_rri", 1, 4, 10])
 def test_hrv_interpolated_rri(interpolation_rate):
-
     ecg = nk.ecg_simulate(duration=120, sampling_rate=1000, heart_rate=110, random_state=42)
 
     _, peaks = nk.ecg_process(ecg, sampling_rate=1000)
@@ -111,7 +112,10 @@ def test_hrv_interpolated_rri(interpolation_rate):
         interpolation_rate = 1000 / np.mean(rri)
 
     rri_processed, rri_processed_time, _ = nk.intervals_process(
-        rri, intervals_time=rri_time, interpolate=True, interpolation_rate=interpolation_rate
+        rri,
+        intervals_time=rri_time,
+        interpolate=True,
+        interpolation_rate=interpolation_rate,
     )
 
     ecg_hrv = nk.hrv({"RRI": rri_processed, "RRI_Time": rri_processed_time})
@@ -151,10 +155,24 @@ def test_hrv_missing():
     miss_rri_time_hrv = nk.hrv_time({"RRI": rri_missing, "RRI_Time": rri_time_missing})
 
     abs_diff_only_rri = np.mean(
-        np.abs(np.diff([orig_hrv["HRV_RMSSD"].values[0], miss_only_rri_hrv["HRV_RMSSD"].values[0]]))
+        np.abs(
+            np.diff(
+                [
+                    orig_hrv["HRV_RMSSD"].values[0],
+                    miss_only_rri_hrv["HRV_RMSSD"].values[0],
+                ]
+            )
+        )
     )
     abs_diff_rri_time = np.mean(
-        np.abs(np.diff([orig_hrv["HRV_RMSSD"].values[0], miss_rri_time_hrv["HRV_RMSSD"].values[0]]))
+        np.abs(
+            np.diff(
+                [
+                    orig_hrv["HRV_RMSSD"].values[0],
+                    miss_rri_time_hrv["HRV_RMSSD"].values[0],
+                ]
+            )
+        )
     )
 
     assert abs_diff_only_rri > abs_diff_rri_time
@@ -176,9 +194,7 @@ def test_hrv_rsa():
         "RSA_Gates_SD",
     ]
 
-    rsa_features = nk.hrv_rsa(
-        ecg_signals, rsp_signals, rpeaks=info, sampling_rate=100, continuous=False
-    )
+    rsa_features = nk.hrv_rsa(ecg_signals, rsp_signals, rpeaks=info, sampling_rate=100, continuous=False)
 
     assert all(key in rsa_feature_columns for key in rsa_features.keys())
 
@@ -187,7 +203,13 @@ def test_hrv_rsa():
         nk.hrv_rsa(ecg_signals, rpeaks=info, sampling_rate=100, continuous=False)
 
     with pytest.warns(misc.NeuroKitWarning, match=r"RSP signal not found. For this time.*"):
-        nk.hrv_rsa(ecg_signals, pd.DataFrame(), rpeaks=info, sampling_rate=100, continuous=False)
+        nk.hrv_rsa(
+            ecg_signals,
+            pd.DataFrame(),
+            rpeaks=info,
+            sampling_rate=100,
+            continuous=False,
+        )
 
     # Test missing rsp onsets/centers
     with pytest.warns(misc.NeuroKitWarning, match=r"Couldn't find rsp cycles onsets and centers.*"):
@@ -209,3 +231,63 @@ def test_hrv_nonlinear_fragmentation():
         "PIP": 0.5714285714285714,
         "PSS": 1.0,
     }
+
+
+def test_hrv_symbolic_classify():
+    """Unit test for _hrv_symbolic_classify — verifies the bug-fix that [a,b,a] is 2UV not 1V."""
+    a, b = 0, 1
+
+    # 0V: all equal
+    result = _hrv_symbolic_classify(np.array([[a, a, a]]))
+    assert result["0V"] == 1.0
+    assert result["1V"] == result["2LV"] == result["2UV"] == 0.0
+
+    # 1V: one adjacent change (a==b, b!=c)
+    result = _hrv_symbolic_classify(np.array([[a, a, b]]))
+    assert result["1V"] == 1.0
+
+    # 1V: one adjacent change (a!=b, b==c)
+    result = _hrv_symbolic_classify(np.array([[a, b, b]]))
+    assert result["1V"] == 1.0
+
+    # 2UV: [a, b, a] — two changes, non-monotone (peak/valley); the critical bug case
+    result = _hrv_symbolic_classify(np.array([[a, b, a]]))
+    assert result["2UV"] == 1.0, "[a,b,a] must be 2UV, not 1V"
+    assert result["1V"] == 0.0
+
+    # 2LV: monotone increasing [0, 1, 2]
+    result = _hrv_symbolic_classify(np.array([[0, 1, 2]]))
+    assert result["2LV"] == 1.0
+
+    # 2LV: monotone decreasing [2, 1, 0]
+    result = _hrv_symbolic_classify(np.array([[2, 1, 0]]))
+    assert result["2LV"] == 1.0
+
+    # 2UV: non-monotone with two changes [0, 2, 1]
+    result = _hrv_symbolic_classify(np.array([[0, 2, 1]]))
+    assert result["2UV"] == 1.0
+
+
+def test_hrv_symbolic():
+    """Integration test: correct columns, values in [0,1], each family group sums to 1."""
+    ecg = nk.ecg_simulate(duration=60, sampling_rate=250, heart_rate=70, random_state=42)
+    _, peaks = nk.ecg_process(ecg, sampling_rate=250)
+    peaks = peaks["ECG_R_Peaks"]
+
+    HRV_Symbolic = nk.hrv_symbolic(peaks)
+
+    expected_columns = [
+        "HRV_Symbolic_EqualProb4_0V",
+        "HRV_Symbolic_EqualProb4_1V",
+        "HRV_Symbolic_EqualProb4_2LV",
+        "HRV_Symbolic_EqualProb4_2UV",
+    ]
+    assert list(HRV_Symbolic.columns) == expected_columns
+
+    values = HRV_Symbolic.iloc[0].values
+    assert np.all(values >= 0.0) and np.all(values <= 1.0)
+
+    # Each group of 4 families (0V+1V+2LV+2UV) must sum to ~1.0
+    for start in range(0, len(values), 4):
+        group_sum = values[start : start + 4].sum()
+        assert np.isclose(group_sum, 1.0, atol=1e-9), f"Family group at col {start} sums to {group_sum}"
