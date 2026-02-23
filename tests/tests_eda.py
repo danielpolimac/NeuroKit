@@ -7,6 +7,7 @@ import pytest
 
 import neurokit2 as nk
 
+
 # =============================================================================
 # EDA
 # =============================================================================
@@ -20,9 +21,7 @@ def test_eda_simulate():
     assert len(nk.signal_findpeaks(eda2, height_min=0.6)["Peaks"]) == 5
     #   pd.DataFrame({"EDA1": eda1, "EDA2": eda2}).plot()
 
-    assert len(nk.signal_findpeaks(eda2, height_min=0.6)["Peaks"]) > len(
-        nk.signal_findpeaks(eda1, height_min=0.6)["Peaks"]
-    )
+    assert len(nk.signal_findpeaks(eda2, height_min=0.6)["Peaks"]) > len(nk.signal_findpeaks(eda1, height_min=0.6)["Peaks"])
 
 
 def test_eda_clean():
@@ -95,9 +94,7 @@ def test_eda_peaks():
         drift=0.01,
         random_state=42,
     )
-    eda_phasic = nk.eda_phasic(nk.standardize(eda), method="highpass")[
-        "EDA_Phasic"
-    ].values
+    eda_phasic = nk.eda_phasic(nk.standardize(eda), method="highpass")["EDA_Phasic"].values
 
     signals, info = nk.eda_peaks(eda_phasic, method="gamboa2008")
 
@@ -117,9 +114,7 @@ def test_eda_peaks():
 
 
 def test_eda_process():
-    eda = nk.eda_simulate(
-        duration=30, scr_number=5, drift=0.1, noise=0, sampling_rate=250
-    )
+    eda = nk.eda_simulate(duration=30, scr_number=5, drift=0.1, noise=0, sampling_rate=250)
     signals, info = nk.eda_process(eda, sampling_rate=250)
 
     assert signals.shape == (7500, 11)
@@ -174,9 +169,7 @@ def test_eda_plot():
     for ax, title in zip(fig.get_axes(), titles):
         assert ax.get_title() == title
     assert fig.get_axes()[2].get_xlabel() == "Time (seconds)"
-    np.testing.assert_array_equal(
-        fig.axes[0].get_xticks(), fig.axes[1].get_xticks(), fig.axes[2].get_xticks()
-    )
+    np.testing.assert_array_equal(fig.axes[0].get_xticks(), fig.axes[1].get_xticks(), fig.axes[2].get_xticks())
     plt.close(fig)
 
 
@@ -236,13 +229,9 @@ def test_eda_findpeaks():
     nabian2018 = nk.eda_findpeaks(eda_phasic, sampling_rate=100, method="nabian2018")
     assert len(nabian2018["SCR_Peaks"]) == 9
 
-    vanhalem2020 = nk.eda_findpeaks(
-        eda_phasic, sampling_rate=100, method="vanhalem2020"
-    )
+    vanhalem2020 = nk.eda_findpeaks(eda_phasic, sampling_rate=100, method="vanhalem2020")
     min_n_peaks = min(len(vanhalem2020), len(nabian2018))
-    assert any(
-        nabian2018["SCR_Peaks"][:min_n_peaks] - vanhalem2020["SCR_Peaks"][:min_n_peaks]
-    ) < np.mean(eda_signal)
+    assert any(nabian2018["SCR_Peaks"][:min_n_peaks] - vanhalem2020["SCR_Peaks"][:min_n_peaks]) < np.mean(eda_signal)
 
 
 @pytest.mark.parametrize(

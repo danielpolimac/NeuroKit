@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import mne
 import numpy as np
@@ -47,9 +46,7 @@ def test_eog_findpeaks():
     eog_cleaned = nk.eog_clean(eog_signal, sampling_rate=100)
 
     # Test with NeuroKit
-    nk_peaks = nk.eog_findpeaks(
-        eog_cleaned, sampling_rate=100, method="neurokit", threshold=0.33, show=False
-    )
+    nk_peaks = nk.eog_findpeaks(eog_cleaned, sampling_rate=100, method="neurokit", threshold=0.33, show=False)
     assert nk_peaks.size == 19
 
     # Test with MNE
@@ -103,39 +100,25 @@ def test_eog_plot():
 def test_eog_eventrelated():
     eog = nk.data("eog_200hz")["vEOG"]
     eog_signals, info = nk.eog_process(eog, sampling_rate=200)
-    epochs = nk.epochs_create(
-        eog_signals, events=[5000, 10000, 15000], epochs_start=-0.1, epochs_end=1.9
-    )
+    epochs = nk.epochs_create(eog_signals, events=[5000, 10000, 15000], epochs_start=-0.1, epochs_end=1.9)
     eog_eventrelated = nk.eog_eventrelated(epochs)
 
     # Test rate features
-    assert np.all(
-        np.array(eog_eventrelated["EOG_Rate_Min"])
-        < np.array(eog_eventrelated["EOG_Rate_Mean"])
-    )
+    assert np.all(np.array(eog_eventrelated["EOG_Rate_Min"]) < np.array(eog_eventrelated["EOG_Rate_Mean"]))
 
-    assert np.all(
-        np.array(eog_eventrelated["EOG_Rate_Mean"])
-        < np.array(eog_eventrelated["EOG_Rate_Max"])
-    )
+    assert np.all(np.array(eog_eventrelated["EOG_Rate_Mean"]) < np.array(eog_eventrelated["EOG_Rate_Max"]))
 
     # Test blink presence
-    assert np.all(
-        np.array(eog_eventrelated["EOG_Blinks_Presence"]) == np.array([1, 0, 0])
-    )
+    assert np.all(np.array(eog_eventrelated["EOG_Blinks_Presence"]) == np.array([1, 0, 0]))
 
     # Test warning on missing columns
-    with pytest.warns(
-        nk.misc.NeuroKitWarning, match=r".*does not have an `EOG_Blinks`.*"
-    ):
+    with pytest.warns(nk.misc.NeuroKitWarning, match=r".*does not have an `EOG_Blinks`.*"):
         first_epoch_key = list(epochs.keys())[0]
         first_epoch_copy = epochs[first_epoch_key].copy()
         del first_epoch_copy["EOG_Blinks"]
         nk.eog_eventrelated({**epochs, first_epoch_key: first_epoch_copy})
 
-    with pytest.warns(
-        nk.misc.NeuroKitWarning, match=r".*does not have an `EOG_Rate`.*"
-    ):
+    with pytest.warns(nk.misc.NeuroKitWarning, match=r".*does not have an `EOG_Rate`.*"):
         first_epoch_key = list(epochs.keys())[0]
         first_epoch_copy = epochs[first_epoch_key].copy()
         del first_epoch_copy["EOG_Rate"]
@@ -156,12 +139,8 @@ def test_eog_intervalrelated():
 
     # Test with dict
     columns.append("Label")
-    epochs = nk.epochs_create(
-        eog_signals, events=[5000, 10000, 15000], epochs_start=-0.1, epochs_end=1.9
-    )
+    epochs = nk.epochs_create(eog_signals, events=[5000, 10000, 15000], epochs_start=-0.1, epochs_end=1.9)
     epochs_dict = nk.eog_intervalrelated(epochs)
 
-    assert all(
-        elem in columns for elem in np.array(epochs_dict.columns.values, dtype=str)
-    )
+    assert all(elem in columns for elem in np.array(epochs_dict.columns.values, dtype=str))
     assert epochs_dict.shape[0] == len(epochs)  # Number of rows

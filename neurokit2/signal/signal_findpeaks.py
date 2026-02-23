@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import scipy.signal
 
@@ -148,7 +147,6 @@ def _signal_findpeaks_keep(
     relative_median=False,
     relative_max=False,
 ):
-
     if below is None and above is None:
         return info
 

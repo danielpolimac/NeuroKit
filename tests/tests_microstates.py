@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-import mne
 import numpy as np
 
 import neurokit2 as nk
+
 
 # =============================================================================
 # Peaks
@@ -10,7 +9,6 @@ import neurokit2 as nk
 
 
 def test_microstates_peaks():
-
     # Load eeg data and calculate gfp
     eeg = nk.mne_data("filt-0-40_raw")
     gfp = nk.eeg_gfp(eeg)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import copy
 import random
 
@@ -10,6 +9,7 @@ import pytest
 
 import neurokit2 as nk
 
+
 random.seed(a=13, version=2)
 
 
@@ -17,25 +17,15 @@ def test_rsp_simulate():
     rsp1 = nk.rsp_simulate(duration=20, length=3000, random_state=42)
     assert len(rsp1) == 3000
 
-    rsp2 = nk.rsp_simulate(
-        duration=20, length=3000, respiratory_rate=80, random_state=42
-    )
+    rsp2 = nk.rsp_simulate(duration=20, length=3000, respiratory_rate=80, random_state=42)
     #    pd.DataFrame({"RSP1":rsp1, "RSP2":rsp2}).plot()
     #    pd.DataFrame({"RSP1":rsp1, "RSP2":rsp2}).hist()
-    assert len(nk.signal_findpeaks(rsp1, height_min=0.2)["Peaks"]) < len(
-        nk.signal_findpeaks(rsp2, height_min=0.2)["Peaks"]
-    )
+    assert len(nk.signal_findpeaks(rsp1, height_min=0.2)["Peaks"]) < len(nk.signal_findpeaks(rsp2, height_min=0.2)["Peaks"])
 
-    rsp3 = nk.rsp_simulate(
-        duration=20, length=3000, method="sinusoidal", random_state=42
-    )
-    rsp4 = nk.rsp_simulate(
-        duration=20, length=3000, method="breathmetrics", random_state=42
-    )
+    rsp3 = nk.rsp_simulate(duration=20, length=3000, method="sinusoidal", random_state=42)
+    rsp4 = nk.rsp_simulate(duration=20, length=3000, method="breathmetrics", random_state=42)
     #    pd.DataFrame({"RSP3":rsp3, "RSP4":rsp4}).plot()
-    assert len(nk.signal_findpeaks(rsp3, height_min=0.2)["Peaks"]) > len(
-        nk.signal_findpeaks(rsp4, height_min=0.2)["Peaks"]
-    )
+    assert len(nk.signal_findpeaks(rsp3, height_min=0.2)["Peaks"]) > len(nk.signal_findpeaks(rsp4, height_min=0.2)["Peaks"])
 
 
 def test_rsp_simulate_legacy_rng():
@@ -101,9 +91,7 @@ def test_rsp_clean():
         random_state=42,
     )
     # Add linear drift (to test baseline removal).
-    rsp += nk.signal_distort(
-        rsp, sampling_rate=sampling_rate, linear_drift=True, random_state=42
-    )
+    rsp += nk.signal_distort(rsp, sampling_rate=sampling_rate, linear_drift=True, random_state=42)
 
     for method in ["khodadad2018", "biosppy", "hampel"]:
         cleaned = nk.rsp_clean(rsp, sampling_rate=sampling_rate, method=method)
@@ -162,9 +150,7 @@ def test_rsp_clean():
 
 
 def test_rsp_peaks():
-    rsp = nk.rsp_simulate(
-        duration=120, sampling_rate=1000, respiratory_rate=15, random_state=42
-    )
+    rsp = nk.rsp_simulate(duration=120, sampling_rate=1000, respiratory_rate=15, random_state=42)
     rsp_cleaned = nk.rsp_clean(rsp, sampling_rate=1000)
     for method in ["khodadad2018", "biosppy", "scipy"]:
         signals, info = nk.rsp_peaks(rsp_cleaned, method=method)
@@ -213,9 +199,7 @@ def test_rsp_amplitude():
 
 
 def test_rsp_rav():
-    rsp = nk.rsp_simulate(
-        duration=45, sampling_rate=50, respiratory_rate=15, random_state=42
-    )
+    rsp = nk.rsp_simulate(duration=45, sampling_rate=50, respiratory_rate=15, random_state=42)
     peak_signal, _ = nk.rsp_peaks(rsp, sampling_rate=50)
     amplitude = nk.rsp_amplitude(rsp, peaks=peak_signal)
 
@@ -225,9 +209,7 @@ def test_rsp_rav():
 
 
 def test_rsp_process():
-    rsp = nk.rsp_simulate(
-        duration=120, sampling_rate=1000, respiratory_rate=15, random_state=2
-    )
+    rsp = nk.rsp_simulate(duration=120, sampling_rate=1000, respiratory_rate=15, random_state=2)
     signals, _ = nk.rsp_process(rsp, sampling_rate=1000)
 
     # Only check array dimensions since functions called by rsp_process have
@@ -251,9 +233,7 @@ def test_rsp_process():
 
 
 def test_rsp_plot():
-    rsp = nk.rsp_simulate(
-        duration=120, sampling_rate=100, respiratory_rate=15, random_state=3
-    )
+    rsp = nk.rsp_simulate(duration=120, sampling_rate=100, respiratory_rate=15, random_state=3)
     rsp_summary, info = nk.rsp_process(rsp, sampling_rate=100)
 
     nk.rsp_plot(rsp_summary, info)
@@ -271,47 +251,29 @@ def test_rsp_plot():
 
 def test_rsp_eventrelated():
     rsp, _ = nk.rsp_process(nk.rsp_simulate(duration=30, random_state=42))
-    epochs = nk.epochs_create(
-        rsp, events=[5000, 10000, 15000], epochs_start=-0.1, epochs_end=1.9
-    )
+    epochs = nk.epochs_create(rsp, events=[5000, 10000, 15000], epochs_start=-0.1, epochs_end=1.9)
     rsp_eventrelated = nk.rsp_eventrelated(epochs)
 
     # Test rate features
-    assert np.all(
-        np.array(rsp_eventrelated["RSP_Rate_Min"])
-        < np.array(rsp_eventrelated["RSP_Rate_Mean"])
-    )
+    assert np.all(np.array(rsp_eventrelated["RSP_Rate_Min"]) < np.array(rsp_eventrelated["RSP_Rate_Mean"]))
 
-    assert np.all(
-        np.array(rsp_eventrelated["RSP_Rate_Mean"])
-        < np.array(rsp_eventrelated["RSP_Rate_Max"])
-    )
+    assert np.all(np.array(rsp_eventrelated["RSP_Rate_Mean"]) < np.array(rsp_eventrelated["RSP_Rate_Max"]))
 
     # Test amplitude features
-    assert np.all(
-        np.array(rsp_eventrelated["RSP_Amplitude_Min"])
-        < np.array(rsp_eventrelated["RSP_Amplitude_Mean"])
-    )
+    assert np.all(np.array(rsp_eventrelated["RSP_Amplitude_Min"]) < np.array(rsp_eventrelated["RSP_Amplitude_Mean"]))
 
-    assert np.all(
-        np.array(rsp_eventrelated["RSP_Amplitude_Mean"])
-        < np.array(rsp_eventrelated["RSP_Amplitude_Max"])
-    )
+    assert np.all(np.array(rsp_eventrelated["RSP_Amplitude_Mean"]) < np.array(rsp_eventrelated["RSP_Amplitude_Max"]))
 
     assert len(rsp_eventrelated["Label"]) == 3
 
     # Test warning on missing columns
-    with pytest.warns(
-        nk.misc.NeuroKitWarning, match=r".*does not have an `RSP_Amplitude`.*"
-    ):
+    with pytest.warns(nk.misc.NeuroKitWarning, match=r".*does not have an `RSP_Amplitude`.*"):
         first_epoch_key = list(epochs.keys())[0]
         first_epoch_copy = epochs[first_epoch_key].copy()
         del first_epoch_copy["RSP_Amplitude"]
         nk.rsp_eventrelated({**epochs, first_epoch_key: first_epoch_copy})
 
-    with pytest.warns(
-        nk.misc.NeuroKitWarning, match=r".*does not have an `RSP_Phase`.*"
-    ):
+    with pytest.warns(nk.misc.NeuroKitWarning, match=r".*does not have an `RSP_Phase`.*"):
         first_epoch_key = list(epochs.keys())[0]
         first_epoch_copy = epochs[first_epoch_key].copy()
         del first_epoch_copy["RSP_Phase"]
@@ -319,12 +281,8 @@ def test_rsp_eventrelated():
 
 
 def test_rsp_rrv():
-    rsp90 = nk.rsp_simulate(
-        duration=60, sampling_rate=1000, respiratory_rate=90, random_state=42
-    )
-    rsp110 = nk.rsp_simulate(
-        duration=60, sampling_rate=1000, respiratory_rate=110, random_state=42
-    )
+    rsp90 = nk.rsp_simulate(duration=60, sampling_rate=1000, respiratory_rate=90, random_state=42)
+    rsp110 = nk.rsp_simulate(duration=60, sampling_rate=1000, respiratory_rate=110, random_state=42)
 
     cleaned90 = nk.rsp_clean(rsp90, sampling_rate=1000)
     _, peaks90 = nk.rsp_peaks(cleaned90)
@@ -374,12 +332,8 @@ def test_rsp_intervalrelated():
 
 def test_rsp_rvt():
     sampling_rate = 1000
-    rsp10 = nk.rsp_simulate(
-        duration=60, sampling_rate=sampling_rate, respiratory_rate=10, random_state=42
-    )
-    rsp20 = nk.rsp_simulate(
-        duration=60, sampling_rate=sampling_rate, respiratory_rate=20, random_state=42
-    )
+    rsp10 = nk.rsp_simulate(duration=60, sampling_rate=sampling_rate, respiratory_rate=10, random_state=42)
+    rsp20 = nk.rsp_simulate(duration=60, sampling_rate=sampling_rate, respiratory_rate=20, random_state=42)
     for method in ["harrison", "birn", "power"]:
         rvt10 = nk.rsp_rvt(rsp10, method=method, sampling_rate=sampling_rate)
         rvt20 = nk.rsp_rvt(rsp20, method=method, sampling_rate=sampling_rate)
@@ -416,7 +370,9 @@ def test_rsp_rvt():
 #         assert rate.shape == (rsp.size,)
 #         assert np.abs(rate.mean()-rsp_rate) < 0.5
 #         # Test with troughs as pd.DataFrame
-#         rate = nk.rsp_rate(rsp, troughs=pd.DataFrame({'RSP_Troughs': info['RSP_Troughs']}), sampling_rate=sampling_rate, method=method)
+#         rate = nk.rsp_rate(
+#           rsp, troughs=pd.DataFrame({"RSP_Troughs": info["RSP_Troughs"]}), sampling_rate=sampling_rate, method=method
+#         )
 #         assert rate.shape == (rsp.size,)
 #         assert np.abs(rate.mean()-rsp_rate) < 0.5
 #         # Test without passing troughs as an argument

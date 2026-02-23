@@ -201,7 +201,12 @@ ignore = [
     "PLR0915", # Too many statements
     "PLR0914", # Too many local variables
     "PLC0415", # Allow imports inside functions (useful for heavy optional dependencies)
+    "PLR2004", # Allows magic values in comparisons
+    "PLR0911", # Allows many return statements in a function e.g., in data.py
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403"] # Allow import * and unused imports in the init files
 
 [tool.ruff.lint.pylint]
 max-args = 10

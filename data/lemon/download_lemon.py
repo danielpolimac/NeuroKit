@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Script for formatting the LEMON EEG dataset
 
 https://ftp.gwdg.de/pub/misc/MPI-Leipzig_Mind-Brain-Body-LEMON/EEG_MPILMBB_LEMON/EEG_Preprocessed_BIDS_ID/EEG_Preprocessed/
@@ -6,22 +5,19 @@ https://ftp.gwdg.de/pub/misc/MPI-Leipzig_Mind-Brain-Body-LEMON/EEG_MPILMBB_LEMON
 Credits:
     pycrostates package by Mathieu Scheltienne and Victor Férat
 """
+
 import os
 
 import mne
 import numpy as np
 import pooch
 
+
 # Path of the database
 path = "https://ftp.gwdg.de/pub/misc/MPI-Leipzig_Mind-Brain-Body-LEMON/EEG_MPILMBB_LEMON/EEG_Preprocessed_BIDS_ID/EEG_Preprocessed/"
 
 # Create a registry with the file names
-files = {
-    f"sub-01{i:04d}_{j}.{k}": None
-    for i in range(2, 319)
-    for j in ["EC", "EO"]
-    for k in ["fdt", "set"]
-}
+files = {f"sub-01{i:04d}_{j}.{k}": None for i in range(2, 319) for j in ["EC", "EO"] for k in ["fdt", "set"]}
 
 # Create fetcher
 fetcher = pooch.create(
@@ -34,7 +30,7 @@ fetcher = pooch.create(
 for sub in files.keys():
     try:
         _ = fetcher.fetch(sub)
-    except:
+    except Exception:
         pass
 
 print("Finished downloading!")

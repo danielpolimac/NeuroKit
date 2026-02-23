@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 
 from ..misc.report import get_kwargs
@@ -127,7 +126,7 @@ def ppg_methods(
         if report_info["heart_rate"] is None:
             cutoff = "of 40 Hz"
         else:
-            cutoff = f' based on the heart rate of {report_info["heart_rate"]} bpm'
+            cutoff = f" based on the heart rate of {report_info['heart_rate']} bpm"
 
         report_info["text_cleaning"] = (
             f" was preprocessed using a lowpass filter (with a cutoff frequency {cutoff},"
@@ -161,9 +160,7 @@ def ppg_methods(
     # 2. Peaks
     # ----------
     if method_peaks in ["elgendi", "elgendi13"]:
-        report_info["text_peaks"] = (
-            "The peak detection was carried out using the method described in Elgendi et al. (2013)."
-        )
+        report_info["text_peaks"] = "The peak detection was carried out using the method described in Elgendi et al. (2013)."
         refs.append(
             """Elgendi M, Norton I, Brearley M, Abbott D, Schuurmans D (2013)
             Systolic Peak Detection in Acceleration Photoplethysmograms

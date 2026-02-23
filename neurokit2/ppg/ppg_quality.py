@@ -1,10 +1,9 @@
-# - * - coding: utf-8 - * -
+import numpy as np
 
-from .ppg_peaks import ppg_peaks
-from ..signal.signal_quality import signal_quality
 from ..signal.signal_interpolate import signal_interpolate
 from ..signal.signal_power import signal_power
-import numpy as np
+from ..signal.signal_quality import signal_quality
+from .ppg_peaks import ppg_peaks
 
 
 def ppg_quality(
@@ -267,10 +266,7 @@ def ppg_quality(
 
 
 # Common window calculation for perfusion and relative_power
-def _windowed_metric(
-    clean_signal, raw_signal, func, sampling_rate, window_sec, overlap_sec, **kwargs
-):
-
+def _windowed_metric(clean_signal, raw_signal, func, sampling_rate, window_sec, overlap_sec, **kwargs):
     # check that clean_signal and raw_signal have the same length
     if len(clean_signal) != len(raw_signal):
         raise ValueError("Clean and raw signals must have the same length.")
@@ -280,19 +276,13 @@ def _windowed_metric(
     step_size = int((window_sec - overlap_sec) * sampling_rate)
     n_samples = len(clean_signal)
     if n_samples < window_size:
-        raise ValueError(
-            f"Signal length ({n_samples} samples) is shorter than window size ({window_size} samples)."
-        )
+        raise ValueError(f"Signal length ({n_samples} samples) is shorter than window size ({window_size} samples).")
 
     # calculate metric for each window
     metric_values = []
     for start in range(0, n_samples - window_size + 1, step_size):
         if func == _rel_power_func:
-            metric_values.append(
-                func(
-                    raw_signal[start : start + window_size], sampling_rate=sampling_rate
-                )
-            )
+            metric_values.append(func(raw_signal[start : start + window_size], sampling_rate=sampling_rate))
         else:
             metric_values.append(
                 func(
@@ -302,9 +292,7 @@ def _windowed_metric(
             )
 
     # interpolate window to provide a continuous output (same length as input signal)
-    window_centers = (
-        np.arange(0, n_samples - window_size + 1, step_size) + window_size // 2
-    )
+    window_centers = np.arange(0, n_samples - window_size + 1, step_size) + window_size // 2
     output = signal_interpolate(
         x_values=window_centers,
         y_values=metric_values,

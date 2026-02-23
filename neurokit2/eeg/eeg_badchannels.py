@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -88,9 +87,7 @@ def eeg_badchannels(eeg, bad_threshold=0.5, distance_threshold=0.99, show=False)
     results = results.set_index("Channel")
 
     z = standardize(results)
-    results["Bad"] = (z.abs() > scipy.stats.norm.ppf(distance_threshold)).sum(axis=1) / len(
-        results.columns
-    )
+    results["Bad"] = (z.abs() > scipy.stats.norm.ppf(distance_threshold)).sum(axis=1) / len(results.columns)
     bads = ch_names[np.where(results["Bad"] >= bad_threshold)[0]]
 
     if show:
@@ -100,7 +97,6 @@ def eeg_badchannels(eeg, bad_threshold=0.5, distance_threshold=0.99, show=False)
 
 
 def _plot_eeg_badchannels(eeg, bads, ch_names):
-
     # Prepare plot
     fig, ax = plt.subplots()
     fig.suptitle("Individual EEG channels")

@@ -3,9 +3,9 @@ import matplotlib.cm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from mpl_toolkits.mplot3d import Axes3D
 
 import neurokit2 as nk
+
 
 # Setup matplotlib with Agg to run on server
 matplotlib.use("Agg")
@@ -21,9 +21,7 @@ plt.rcParams["savefig.facecolor"] = "white"
 data = nk.data("bio_eventrelated_100hz")
 
 # Preprocess the data (filter, find peaks, etc.)
-processed_data, info = nk.bio_process(
-    ecg=data["ECG"], rsp=data["RSP"], eda=data["EDA"], sampling_rate=100
-)
+processed_data, info = nk.bio_process(ecg=data["ECG"], rsp=data["RSP"], eda=data["EDA"], sampling_rate=100)
 
 # Compute relevant features
 results = nk.bio_analyze(processed_data, sampling_rate=100)
@@ -268,9 +266,7 @@ np.random.seed(333)
 signal = nk.signal_simulate(duration=10, frequency=1)  # High freq
 signal += 3 * nk.signal_simulate(duration=10, frequency=3)  # Higher freq
 signal += 3 * np.linspace(0, 2, len(signal))  # Add baseline and linear trend
-signal += 2 * nk.signal_simulate(
-    duration=10, frequency=0.1, noise=0
-)  # Non-linear trend
+signal += 2 * nk.signal_simulate(duration=10, frequency=0.1, noise=0)  # Non-linear trend
 signal += np.random.normal(0, 0.02, len(signal))  # Add noise
 
 # Decompose signal using Empirical Mode Decomposition (EMD)
@@ -308,21 +304,13 @@ fig.savefig("README_decomposition.png", dpi=300)
 # =============================================================================
 
 # Generate complex signal
-signal = nk.signal_simulate(
-    duration=20, frequency=[0.5, 5, 10, 15], amplitude=[2, 1.5, 0.5, 0.3], noise=0.025
-)
+signal = nk.signal_simulate(duration=20, frequency=[0.5, 5, 10, 15], amplitude=[2, 1.5, 0.5, 0.3], noise=0.025)
 
 # Get the PSD using different methods
-welch = nk.signal_psd(
-    signal, method="welch", min_frequency=1, max_frequency=20, show=True
-)
+welch = nk.signal_psd(signal, method="welch", min_frequency=1, max_frequency=20, show=True)
 multitaper = nk.signal_psd(signal, method="multitapers", max_frequency=20, show=True)
-lomb = nk.signal_psd(
-    signal, method="lomb", min_frequency=1, max_frequency=20, show=True
-)
-burg = nk.signal_psd(
-    signal, method="burg", min_frequency=1, max_frequency=20, order=10, show=True
-)
+lomb = nk.signal_psd(signal, method="lomb", min_frequency=1, max_frequency=20, show=True)
+burg = nk.signal_psd(signal, method="burg", min_frequency=1, max_frequency=20, order=10, show=True)
 
 
 # Visualize the different methods together

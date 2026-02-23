@@ -49,9 +49,7 @@ def _make_stream(t_start, t_end, srate, n_channels=1, name="S"):
 class TestMaskLargeGaps:
     def _run(self, original_ts, new_ts, max_gap):
         data = np.ones((len(new_ts), 2), dtype=np.float64)
-        return _mask_large_gaps(
-            np.asarray(original_ts), np.asarray(new_ts), data, max_gap
-        )
+        return _mask_large_gaps(np.asarray(original_ts), np.asarray(new_ts), data, max_gap)
 
     def test_no_gaps_returns_unchanged(self):
         orig = np.array([0.0, 0.1, 0.2, 0.3])
@@ -84,9 +82,7 @@ class TestMaskLargeGaps:
         result = self._run(orig, new, max_gap=0.5)
         for g_start, g_end in [(0.1, 2.0), (2.1, 5.0)]:
             inside = (new > g_start) & (new < g_end)
-            assert np.all(
-                np.isnan(result[inside, 0])
-            ), f"Gap ({g_start},{g_end}) not masked"
+            assert np.all(np.isnan(result[inside, 0])), f"Gap ({g_start},{g_end}) not masked"
 
     def test_fast_path_no_large_gaps_performance(self):
         """Fast path must return immediately without modifying data."""
@@ -195,23 +191,17 @@ class TestSynchronizeStreams:
 
     def test_raises_when_all_irregular(self):
         with pytest.raises(ValueError, match="nominal_srate=0"):
-            _synchronize_streams(
-                self._irregular_streams(), upsample_factor=2.0, verbose=False
-            )
+            _synchronize_streams(self._irregular_streams(), upsample_factor=2.0, verbose=False)
 
     def test_message_does_not_suggest_upsample_factor(self):
         """The error message must not suggest changing upsample_factor (it can't help)."""
         with pytest.raises(ValueError) as exc_info:
-            _synchronize_streams(
-                self._irregular_streams(), upsample_factor=99.0, verbose=False
-            )
+            _synchronize_streams(self._irregular_streams(), upsample_factor=99.0, verbose=False)
         assert "upsample_factor" not in str(exc_info.value)
 
     def test_normal_streams_produce_dataframe(self):
         streams = [_make_stream(0.0, 1.0, srate=100, n_channels=2)]
-        df, target_fs = _synchronize_streams(
-            streams, upsample_factor=1.0, verbose=False
-        )
+        df, target_fs = _synchronize_streams(streams, upsample_factor=1.0, verbose=False)
         assert isinstance(df, pd.DataFrame)
         assert len(df) > 0
         assert target_fs == 100

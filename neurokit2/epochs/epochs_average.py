@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 
 from .epochs_to_df import epochs_to_df
 
 
-def epochs_average(
-    epochs, which=None, indices=["mean", "std", "ci"], show=False, **kwargs
-):
+def epochs_average(epochs, which=None, indices=["mean", "std", "ci"], show=False, **kwargs):
     """**Compute Grand Average**
 
     Average epochs and returns the grand average, as well as the SD and the confidence interval.
@@ -43,9 +40,7 @@ def epochs_average(
     """
     data = epochs_to_df(epochs)
 
-    assert (
-        "Time" in data.columns
-    ), "Something is wrong with the epochs data, could not find a 'Time' column in them."
+    assert "Time" in data.columns, "Something is wrong with the epochs data, could not find a 'Time' column in them."
 
     # Select only the first column
     if which is None:
@@ -70,7 +65,7 @@ def epochs_average(
 
     # Group by and average
     av = data.groupby(["Time"], as_index=False).agg(what).reset_index()
-    av.columns = ["%s%s" % (a, "_%s" % b if b else "") for a, b in av.columns]
+    av.columns = [f"{a}_{b}" if b else f"{a}" for a, b in av.columns]
 
     # Format
     av.columns = av.columns.str.replace("_mean", "_Mean")

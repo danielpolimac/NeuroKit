@@ -4,6 +4,7 @@ import numpy as np
 
 import neurokit2 as nk
 
+
 path_data = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
 # =============================================================================
@@ -12,7 +13,6 @@ path_data = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 
 
 def test_read_acqknowledge():
-
     df, sampling_rate = nk.read_acqknowledge(os.path.join(path_data, "acqnowledge.acq"), sampling_rate=2000)
     assert sampling_rate == 2000
 
@@ -21,7 +21,6 @@ def test_read_acqknowledge():
 
 
 def test_data():
-
     dataset = "bio_eventrelated_100hz"
 
     data = nk.data(dataset)

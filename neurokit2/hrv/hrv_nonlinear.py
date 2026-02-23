@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from warnings import warn
 
 import matplotlib
@@ -282,19 +281,13 @@ def hrv_nonlinear(peaks, sampling_rate=1000, show=False, **kwargs):
     out = {}
 
     # Poincaré features (SD1, SD2, etc.)
-    out = _hrv_nonlinear_poincare(
-        rri, rri_time=rri_time, rri_missing=rri_missing, out=out
-    )
+    out = _hrv_nonlinear_poincare(rri, rri_time=rri_time, rri_missing=rri_missing, out=out)
 
     # Heart Rate Fragmentation
-    out = _hrv_nonlinear_fragmentation(
-        rri, rri_time=rri_time, rri_missing=rri_missing, out=out
-    )
+    out = _hrv_nonlinear_fragmentation(rri, rri_time=rri_time, rri_missing=rri_missing, out=out)
 
     # Heart Rate Asymmetry
-    out = _hrv_nonlinear_poincare_hra(
-        rri, rri_time=rri_time, rri_missing=rri_missing, out=out
-    )
+    out = _hrv_nonlinear_poincare_hra(rri, rri_time=rri_time, rri_missing=rri_missing, out=out)
 
     # DFA
     out = _hrv_dfa(rri, out, **kwargs)
@@ -305,15 +298,9 @@ def hrv_nonlinear(peaks, sampling_rate=1000, show=False, **kwargs):
     out["SampEn"], _ = entropy_sample(rri, delay=1, dimension=2, tolerance=tolerance)
     out["ShanEn"], _ = entropy_shannon(rri)
     out["FuzzyEn"], _ = entropy_fuzzy(rri, delay=1, dimension=2, tolerance=tolerance)
-    out["MSEn"], _ = entropy_multiscale(
-        rri, dimension=2, tolerance=tolerance, method="MSEn"
-    )
-    out["CMSEn"], _ = entropy_multiscale(
-        rri, dimension=2, tolerance=tolerance, method="CMSEn"
-    )
-    out["RCMSEn"], _ = entropy_multiscale(
-        rri, dimension=2, tolerance=tolerance, method="RCMSEn"
-    )
+    out["MSEn"], _ = entropy_multiscale(rri, dimension=2, tolerance=tolerance, method="MSEn")
+    out["CMSEn"], _ = entropy_multiscale(rri, dimension=2, tolerance=tolerance, method="CMSEn")
+    out["RCMSEn"], _ = entropy_multiscale(rri, dimension=2, tolerance=tolerance, method="RCMSEn")
 
     out["CD"], _ = fractal_correlation(rri, delay=1, dimension=2, **kwargs)
     out["HFD"], _ = fractal_higuchi(rri, k_max=10, **kwargs)
@@ -406,9 +393,7 @@ def _hrv_nonlinear_poincare_hra(rri, rri_time=None, rri_missing=False, out={}):
     dist_all = abs(y - x) / np.sqrt(2)
 
     # Calculate the angles
-    theta_all = abs(
-        np.arctan(1) - np.arctan(y / x)
-    )  # phase angle LI - phase angle of i-th point
+    theta_all = abs(np.arctan(1) - np.arctan(y / x))  # phase angle LI - phase angle of i-th point
     # Calculate the radius
     r = np.sqrt(x**2 + y**2)
     # Sector areas
@@ -516,7 +501,6 @@ def _hrv_nonlinear_fragmentation(rri, rri_time=None, rri_missing=False, out={}):
 # DFA
 # =============================================================================
 def _hrv_dfa(rri, out, n_windows="default", **kwargs):
-
     # if "dfa_windows" in kwargs:
     #    dfa_windows = kwargs["dfa_windows"]
     # else:
@@ -546,17 +530,11 @@ def _hrv_dfa(rri, out, n_windows="default", **kwargs):
         n_windows_long = n_windows[1]
 
     # Compute DFA alpha1
-    short_window = np.linspace(
-        dfa_windows[0][0], dfa_windows[0][1], n_windows_short
-    ).astype(int)
+    short_window = np.linspace(dfa_windows[0][0], dfa_windows[0][1], n_windows_short).astype(int)
     # For monofractal
-    out["DFA_alpha1"], _ = fractal_dfa(
-        rri, multifractal=False, scale=short_window, **kwargs
-    )
+    out["DFA_alpha1"], _ = fractal_dfa(rri, multifractal=False, scale=short_window, **kwargs)
     # For multifractal
-    mdfa_alpha1, _ = fractal_dfa(
-        rri, multifractal=True, q=np.arange(-5, 6), scale=short_window, **kwargs
-    )
+    mdfa_alpha1, _ = fractal_dfa(rri, multifractal=True, q=np.arange(-5, 6), scale=short_window, **kwargs)
     for k in mdfa_alpha1.columns:
         out["MFDFA_alpha1_" + k] = mdfa_alpha1[k].values[0]
 
@@ -572,17 +550,11 @@ def _hrv_dfa(rri, out, n_windows="default", **kwargs):
         )
         return out
     else:
-        long_window = np.linspace(
-            dfa_windows[1][0], int(max_beats), n_windows_long
-        ).astype(int)
+        long_window = np.linspace(dfa_windows[1][0], int(max_beats), n_windows_long).astype(int)
         # For monofractal
-        out["DFA_alpha2"], _ = fractal_dfa(
-            rri, multifractal=False, scale=long_window, **kwargs
-        )
+        out["DFA_alpha2"], _ = fractal_dfa(rri, multifractal=False, scale=long_window, **kwargs)
         # For multifractal
-        mdfa_alpha2, _ = fractal_dfa(
-            rri, multifractal=True, q=np.arange(-5, 6), scale=long_window, **kwargs
-        )
+        mdfa_alpha2, _ = fractal_dfa(rri, multifractal=True, q=np.arange(-5, 6), scale=long_window, **kwargs)
         for k in mdfa_alpha2.columns:
             out["MFDFA_alpha2_" + k] = mdfa_alpha2[k].values[0]
 
@@ -630,8 +602,8 @@ def hrv_symbolic(
 
     The following parameterizations have been used in the literature:
 
-    * ``quantization_level_equal_prob=(4,)`` is the most common choice and is recommended for 
-      cross-subject comparisons due to its invariance to the RR interval distribution (Cysarz et 
+    * ``quantization_level_equal_prob=(4,)`` is the most common choice and is recommended for
+      cross-subject comparisons due to its invariance to the RR interval distribution (Cysarz et
       al., 2018).
     * ``quantization_level_equal_prob=(4, 6)`` together with ``quantization_level_max_min=(6,)``
       and ``sigma_rate=(0.05,)`` allows direct comparison across all three quantization methods
@@ -799,7 +771,6 @@ def _hrv_nonlinear_show(
     ax_marg_x=None,
     ax_marg_y=None,
 ):
-
     mean_heart_period = np.nanmean(rri)
     sd1 = out["SD1"]
     sd2 = out["SD2"]
@@ -873,9 +844,7 @@ def _hrv_nonlinear_show(
     x1_plot = np.linspace(ax1_min, ax1_max, len(ax1))
     x1_dens = kde1.evaluate(x1_plot)
 
-    ax_marg_x.fill(
-        x1_plot, x1_dens, facecolor="none", edgecolor="#1b6aaf", alpha=0.8, linewidth=2
-    )
+    ax_marg_x.fill(x1_plot, x1_dens, facecolor="none", edgecolor="#1b6aaf", alpha=0.8, linewidth=2)
     kde2 = scipy.stats.gaussian_kde(ax2)
     x2_plot = np.linspace(ax2_min, ax2_max, len(ax2))
     x2_dens = kde2.evaluate(x2_plot)
@@ -898,9 +867,7 @@ def _hrv_nonlinear_show(
     width = 2 * sd2 + 1
     height = 2 * sd1 + 1
     xy = (mean_heart_period, mean_heart_period)
-    ellipse = matplotlib.patches.Ellipse(
-        xy=xy, width=width, height=height, angle=angle, linewidth=2, fill=False
-    )
+    ellipse = matplotlib.patches.Ellipse(xy=xy, width=width, height=height, angle=angle, linewidth=2, fill=False)
     ellipse.set_alpha(0.5)
     ellipse.set_facecolor("#2196F3")
     ax.add_patch(ellipse)

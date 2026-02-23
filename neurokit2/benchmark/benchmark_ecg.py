@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 
 import numpy as np
@@ -65,9 +64,7 @@ def benchmark_ecg_preprocessing(function, ecg, rpeaks=None, sampling_rate=1000):
     if isinstance(ecg, pd.DataFrame):
         results = _benchmark_ecg_preprocessing_databases(function, ecg, rpeaks)
     else:
-        results = _benchmark_ecg_preprocessing(
-            function, ecg, rpeaks, sampling_rate=sampling_rate
-        )
+        results = _benchmark_ecg_preprocessing(function, ecg, rpeaks, sampling_rate=sampling_rate)
 
     return results
 
@@ -81,15 +78,9 @@ def _benchmark_ecg_preprocessing_databases(function, ecgs, rpeaks):
     results = []
     for participant in ecgs["Participant"].unique():
         for database in ecgs[ecgs["Participant"] == participant]["Database"].unique():
-
             # Extract the right slice of data
-            ecg_slice = ecgs[
-                (ecgs["Participant"] == participant) & (ecgs["Database"] == database)
-            ]
-            rpeaks_slice = rpeaks[
-                (rpeaks["Participant"] == participant)
-                & (rpeaks["Database"] == database)
-            ]
+            ecg_slice = ecgs[(ecgs["Participant"] == participant) & (ecgs["Database"] == database)]
+            rpeaks_slice = rpeaks[(rpeaks["Participant"] == participant) & (rpeaks["Database"] == database)]
             sampling_rate = ecg_slice["Sampling_Rate"].unique()[0]
 
             # Extract values
@@ -127,9 +118,7 @@ def _benchmark_ecg_preprocessing(function, ecg, rpeak, sampling_rate=1000):
         )
 
     # Compare R peaks
-    score, error = benchmark_ecg_compareRpeaks(
-        rpeak, found_rpeaks, sampling_rate=sampling_rate
-    )
+    score, error = benchmark_ecg_compareRpeaks(rpeak, found_rpeaks, sampling_rate=sampling_rate)
 
     return pd.DataFrame(
         {

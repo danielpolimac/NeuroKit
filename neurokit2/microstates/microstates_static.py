@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import matplotlib.gridspec
 import numpy as np
 import pandas as pd
@@ -56,24 +55,18 @@ def microstates_static(microstates, sampling_rate=1000, show=False):
     out = {}
 
     out, lifetimes = _microstates_prevalence(microstates, out=out)
-    out, durations, types = _microstates_duration(
-        microstates, sampling_rate=sampling_rate, out=out
-    )
+    out, durations, types = _microstates_duration(microstates, sampling_rate=sampling_rate, out=out)
 
     if show is True:
         fig = plt.figure(constrained_layout=False)
-        spec = matplotlib.gridspec.GridSpec(
-            ncols=2, nrows=2, height_ratios=[1, 1], width_ratios=[1, 1]
-        )
+        spec = matplotlib.gridspec.GridSpec(ncols=2, nrows=2, height_ratios=[1, 1], width_ratios=[1, 1])
 
         ax0 = fig.add_subplot(spec[1, :])
         ax1 = fig.add_subplot(spec[0, :-1])
         ax2 = fig.add_subplot(spec[0, 1])
 
         _microstates_duration_plot(durations, types, ax=ax0)
-        _microstates_prevalence_plot(
-            microstates, lifetimes, out, ax_prop=ax1, ax_distrib=ax2
-        )
+        _microstates_prevalence_plot(microstates, lifetimes, out, ax_prop=ax1, ax_distrib=ax2)
         plt.tight_layout()
 
     df = pd.DataFrame.from_dict(out, orient="index").T.add_prefix("Microstate_")
@@ -110,7 +103,6 @@ def _microstates_duration(microstates, sampling_rate=1000, out=None):
 
 
 def _microstates_duration_plot(durations, types, ax=None):
-
     # Make data for violin
     states = np.unique(types)
     data = []
@@ -164,9 +156,7 @@ def _microstates_prevalence(microstates, out=None):
     return out, lifetimes
 
 
-def _microstates_prevalence_plot(
-    microstates, lifetimes, out, ax_prop=None, ax_distrib=None
-):
+def _microstates_prevalence_plot(microstates, lifetimes, out, ax_prop=None, ax_distrib=None):
     states = np.unique(microstates)
 
     # Plot

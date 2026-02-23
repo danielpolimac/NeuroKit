@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from warnings import warn
 
 import numpy as np
@@ -117,9 +116,7 @@ def ppg_clean(ppg_signal, sampling_rate=1000, heart_rate=None, method="elgendi")
     elif method in ["none"]:
         clean = ppg_signal
     else:
-        raise ValueError(
-            "`method` not found. Must be one of 'elgendi', 'nabian2018', 'langevin2021', 'goda2024', or 'none'."
-        )
+        raise ValueError("`method` not found. Must be one of 'elgendi', 'nabian2018', 'langevin2021', 'goda2024', or 'none'.")
 
     return clean
 
@@ -157,10 +154,7 @@ def _ppg_clean_nabian2018(ppg_signal, sampling_rate, heart_rate=None):
         heart_rate = heart_rate / 60
 
         if not (highcut >= 10 * heart_rate and highcut < 0.5 * sampling_rate):
-            raise ValueError(
-                "Highcut value should be at least 10 times heart rate and"
-                " less than 0.5 times sampling rate."
-            )
+            raise ValueError("Highcut value should be at least 10 times heart rate and less than 0.5 times sampling rate.")
 
     filtered = signal_filter(
         ppg_signal,

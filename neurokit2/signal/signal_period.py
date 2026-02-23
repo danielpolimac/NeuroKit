@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from warnings import warn
 
 import numpy as np
@@ -86,9 +85,9 @@ def signal_period(
             category=NeuroKitWarning,
         )
         # insert desired_length if not provided:
-        if not isinstance(
-            desired_length, (int, float, np.integer, np.floating)
-        ) and not (isinstance(desired_length, np.ndarray) and desired_length.ndim == 0):
+        if not isinstance(desired_length, (int, float, np.integer, np.floating)) and not (
+            isinstance(desired_length, np.ndarray) and desired_length.ndim == 0
+        ):
             desired_length = len(peaks)
 
         return np.full(int(desired_length), np.nan)
@@ -97,9 +96,7 @@ def signal_period(
         isinstance(desired_length, np.ndarray) and desired_length.ndim == 0
     ):
         if desired_length <= peaks[-1]:
-            raise ValueError(
-                "NeuroKit error: desired_length must be None or larger than the index of the last peak."
-            )
+            raise ValueError("NeuroKit error: desired_length must be None or larger than the index of the last peak.")
 
     # Calculate period in sec, based on peak to peak difference and make sure
     # that rate has the same number of elements as peaks (important for

@@ -82,9 +82,7 @@ def entropy_grid(signal, delay=1, k=3, show=False, **kwargs):
     """
     # Sanity checks
     if isinstance(signal, (np.ndarray, pd.DataFrame)) and signal.ndim > 1:
-        raise ValueError(
-            "Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet."
-        )
+        raise ValueError("Multidimensional inputs (e.g., matrices or multichannel data) are not supported yet.")
 
     info = {"k": k, "Delay": delay}
 
@@ -108,7 +106,6 @@ def entropy_grid(signal, delay=1, k=3, show=False, **kwargs):
     info["GDR"] = np.sum(hist != 0) / hist.size
 
     if show is True:
-
         gridlines = np.linspace(0, 1, k + 1)
         plt.subplots(1, 2)
         x1 = plt.subplot(121)
