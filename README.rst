@@ -589,7 +589,7 @@ Statistics
 .. image:: https://raw.github.com/neuropsychology/NeuroKit/master/docs/readme/README_hdi.png
         :target: https://neuropsychology.github.io/NeuroKit/functions/stats.html#hdi
 
-.. used_at_section
+
 
 Popularity
 ---------------------
@@ -605,9 +605,6 @@ Popularity
 
 
 NeuroKit2 is one of the most welcoming packages for new contributors and users, as well as the fastest-growing package. So stop hesitating and hop on board 🤗
-
-.. image:: https://raw.github.com/neuropsychology/NeuroKit/dev/docs/readme/README_popularity.png
-        :target: https://pypi.python.org/pypi/neurokit2
 
 
 Used at
@@ -632,5 +629,3 @@ Used at
 Disclaimer
 ----------
 *The authors do not provide any warranty. If this software causes your keyboard to blow up, your brain to liquefy, your toilet to clog or a zombie plague to break loose, the authors CANNOT IN ANY WAY be held responsible.*
-
-
