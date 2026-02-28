@@ -1,9 +1,9 @@
 name: 📦 Release & Publish
 
 on:
+    pull_request:
     push:
         branches: [master]
-        tags: ["v*"]
     workflow_dispatch:
 
 permissions:
@@ -11,10 +11,22 @@ permissions:
     id-token: write
 
 jobs:
-    # --- STAGE 1: Test Release ---
+    # --- STAGE 1: Build Check (all PRs & master) ---
+    build:
+        name: 🔨 Build Package
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: astral-sh/setup-uv@v5
+
+            - name: Build
+              run: uv build
+
+    # --- STAGE 2: Test Release (master only) ---
     publish-test:
         name: 🧪 Publish to TestPyPI
-        if: startsWith(github.ref, 'refs/tags/v')
+        needs: build
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -29,11 +41,11 @@ jobs:
                   repository-url: https://test.pypi.org/legacy/
                   verbose: true
 
-    # --- STAGE 2: Production Release ---
+    # --- STAGE 3: Production Release (master only) ---
     publish-prod:
         name: 🚀 Publish to PyPI
         needs: publish-test
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         runs-on: ubuntu-latest
         environment:
             name: pypi
