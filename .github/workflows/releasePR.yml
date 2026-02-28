@@ -24,13 +24,16 @@ jobs:
     publish-test:
         name: 🧪 Publish to TestPyPI
         needs: build
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
         runs-on: ubuntu-latest
         environment:
             name: testpypi
             url: https://test.pypi.org/p/neurokit2
         steps:
             - uses: actions/checkout@v4
+              with:
+                fetch-depth: 0
+
             - uses: astral-sh/setup-uv@v5
 
             - name: Build
@@ -47,13 +50,16 @@ jobs:
     publish-prod:
         name: 🚀 Publish to PyPI
         needs: publish-test
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         runs-on: ubuntu-latest
         environment:
             name: pypi
             url: https://pypi.org/p/neurokit2
         steps:
             - uses: actions/checkout@v4
+              with:
+                fetch-depth: 0
+
             - uses: astral-sh/setup-uv@v5
 
             - name: Build
